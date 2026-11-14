@@ -1,0 +1,342 @@
+/* ===========================================================================
+   vibe-ui token contract
+   ---------------------------------------------------------------------------
+   Import this before any other CSS. Reference these tokens everywhere; never
+   write a literal color, spacing, radius, or duration in component code.
+
+   BEFORE SHIPPING: change --accent-h (one number, line ~40) to fit the product.
+   Leaving the default is why everything ends up the same color.
+
+   Colors are OKLCH: lightness is perceptually uniform, so a ramp with even L
+   steps *looks* evenly spaced — which sRGB hex ramps do not. Browser support is
+   Chrome/Safari/Firefox 113+. For older targets see palette.md § Fallbacks.
+   =========================================================================== */
+
+:root {
+  /* --- Neutral ramp ------------------------------------------------------
+     Even lightness steps, a trace of chroma at hue 250 so neutrals read as
+     intentional rather than dead gray. Keep the hue; adjust chroma to taste
+     (0 = true gray, 0.02 = noticeably cool). */
+  --n-h: 250;
+  --n-c: 0.006;
+
+  --n-50:  oklch(0.985 0.002 var(--n-h));
+  --n-100: oklch(0.967 0.003 var(--n-h));
+  --n-200: oklch(0.922 0.004 var(--n-h));
+  --n-300: oklch(0.869 0.005 var(--n-h));
+  --n-400: oklch(0.708 0.008 var(--n-h));  /* 2.6:1 on white — DECORATIVE ONLY */
+  /* The 3:1 floor step. Verified 3.00:1 on white — this is the lightest value
+     usable for large text, meaningful icons, or a control's only visible edge.
+     n-400 does NOT clear 3:1; don't substitute it. */
+  --n-450: oklch(0.669 0.008 var(--n-h));
+  --n-500: oklch(0.556 0.010 var(--n-h));  /* 4.7:1 on white — body-safe */
+  --n-600: oklch(0.439 0.010 var(--n-h));
+  --n-700: oklch(0.371 0.009 var(--n-h));
+  --n-800: oklch(0.269 0.008 var(--n-h));
+  --n-900: oklch(0.208 0.007 var(--n-h));
+  --n-950: oklch(0.145 0.006 var(--n-h));
+
+  /* --- Accent ------------------------------------------------------------
+     ONE hue variable drives the whole accent ramp. Change it here only.
+     Suggested starting points that avoid the generated-UI look:
+       25  terracotta    145 green      195 teal
+       255 blue          320 magenta     70 amber
+     Avoid 270–290 (the indigo/violet that reads as AI-default). */
+  --accent-h: 195;
+
+  --accent-50:  oklch(0.970 0.020 var(--accent-h));
+  --accent-100: oklch(0.930 0.045 var(--accent-h));
+  --accent-200: oklch(0.870 0.080 var(--accent-h));
+  --accent-300: oklch(0.790 0.120 var(--accent-h));
+  --accent-400: oklch(0.700 0.160 var(--accent-h));
+  --accent-500: oklch(0.620 0.185 var(--accent-h));
+  --accent-600: oklch(0.520 0.190 var(--accent-h));  /* darkened from 0.550: teal needs it for white text AA */
+  --accent-700: oklch(0.470 0.165 var(--accent-h));
+  --accent-800: oklch(0.390 0.130 var(--accent-h));
+  --accent-900: oklch(0.310 0.095 var(--accent-h));
+
+  /* --- Status -----------------------------------------------------------
+     Fixed hues — these must NOT follow the accent, or "success" stops
+     reading as success.
+
+     TWO tokens per status, and the distinction is load-bearing:
+       --x      the vivid color. Borders, icon fills, chart marks, solid
+                fills. Only needs 3:1, so it can stay saturated.
+       --x-text TEXT on --x-bg. Needs 4.5:1, which the vivid value does NOT
+                reach on its own tint — measured 3.46 / 2.65 / 4.14 / 3.37 for
+                success / warning / danger / info. Using --success on
+                --success-bg for a badge label is an AA failure. */
+  --success:      oklch(0.590 0.140 150);
+  --success-bg:   oklch(0.960 0.030 150);
+  --success-text: oklch(0.520 0.140 150);   /* 4.6:1 on --success-bg */
+  --warning:      oklch(0.680 0.150  75);
+  --warning-bg:   oklch(0.965 0.045  85);
+  --warning-text: oklch(0.540 0.150  75);   /* 4.6:1 on --warning-bg */
+  --danger:       oklch(0.580 0.200  25);
+  --danger-bg:    oklch(0.960 0.030  25);
+  --danger-text:  oklch(0.550 0.200  25);   /* 4.6:1 on --danger-bg */
+  --info:         oklch(0.600 0.130 230);
+  --info-bg:      oklch(0.960 0.030 230);
+  --info-text:    oklch(0.520 0.130 230);   /* 4.6:1 on --info-bg */
+
+  /* --- Semantic surfaces -------------------------------------------------
+     Components reference THESE, never the ramps above. That indirection is
+     what makes dark mode a token swap instead of a rewrite. */
+  --surface:         oklch(1 0 0);
+  --surface-raised:  oklch(1 0 0);          /* cards above the page */
+  --surface-sunken:  var(--n-50);           /* wells, insets, code blocks */
+  --surface-overlay: oklch(1 0 0);          /* modals, popovers */
+  --surface-hover:   var(--n-100);
+  --surface-active:  var(--n-200);
+  --scrim:           oklch(0.145 0.006 250 / 0.45);
+
+  /* Borders come in two kinds, and conflating them is an accessibility bug.
+     Decorative separators have no contrast requirement. A border that is the
+     ONLY thing marking an interactive control (input outline, checkbox edge,
+     unfilled button) must clear 3:1 — use --border-interactive there. */
+  --border:             var(--n-200);   /* 1.3:1  — decorative separators */
+  --border-strong:      var(--n-300);   /* 1.5:1  — emphasis, still decorative */
+  --border-interactive: var(--n-450);   /* 3.0:1  — control edges. Verified. */
+  --border-focus:       var(--accent-500); /* 3.7:1 on white */
+
+  --text:            var(--n-900);   /* 17.8:1 on --surface — body, headings */
+  --text-muted:      var(--n-500);   /*  4.7:1 — body-safe secondary text */
+  --text-subtle:     var(--n-450);   /*  3.0:1 — LARGE TEXT / ICONS ONLY */
+  --text-on-accent:  oklch(1 0 0);
+
+  --accent:          var(--accent-600);
+  --accent-hover:    var(--accent-700);
+  --accent-subtle:   var(--accent-50);
+  --accent-text:     var(--accent-700);     /* accent-colored text on --surface */
+
+  /* --- Spacing — 4px base ----------------------------------------------
+     Use these only. A one-off 13px is how a design system dies. */
+  --sp-1:  0.25rem;   /*  4px */
+  --sp-2:  0.5rem;    /*  8px */
+  --sp-3:  0.75rem;   /* 12px */
+  --sp-4:  1rem;      /* 16px */
+  --sp-5:  1.5rem;    /* 24px */
+  --sp-6:  2rem;      /* 32px */
+  --sp-7:  3rem;      /* 48px */
+  --sp-8:  4rem;      /* 64px */
+  --sp-9:  6rem;      /* 96px */
+
+  /* --- Type scale -------------------------------------------------------
+     Seven steps with obvious gaps. Adjacent steps should never be
+     confusable — that's the point of skipping 15/17/18. */
+  --text-xs:   0.75rem;    /* 12 — captions, badges */
+  --text-sm:   0.875rem;   /* 14 — UI default, dense body */
+  --text-base: 1rem;       /* 16 — body */
+  --text-lg:   1.25rem;    /* 20 — subheads */
+  --text-xl:   1.5rem;     /* 24 — section heads */
+  --text-2xl:  2rem;       /* 32 — page title */
+  --text-3xl:  2.75rem;    /* 44 — hero only */
+
+  --leading-tight: 1.2;    /* headings */
+  --leading-snug:  1.4;    /* UI text */
+  --leading-normal: 1.6;   /* body prose */
+
+  /* Weight carries hierarchy as much as size does. Use all three. */
+  --weight-normal: 400;    /* body */
+  --weight-medium: 500;    /* UI labels, buttons, table headers */
+  --weight-semi:   600;    /* headings */
+  --weight-bold:   700;    /* hero, emphasis within headings */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+
+  --measure: 68ch;         /* max line length for prose */
+
+  /* --- Radii — three plus full ------------------------------------------ */
+  --radius-sm:   0.375rem;  /*  6px — inputs, badges, small buttons */
+  --radius-md:   0.625rem;  /* 10px — cards, panels */
+  --radius-lg:   1rem;      /* 16px — modals, large containers */
+  --radius-full: 9999px;    /* pills, avatars */
+
+  /* --- Shadows ----------------------------------------------------------
+     Layered and hue-tinted, low opacity. A single big black blur is the
+     #1 generated-UI tell. Two layers = a near shadow for the edge and a
+     far shadow for the lift. */
+  --shadow-sm:
+    0 1px 2px oklch(0.208 0.007 250 / 0.06),
+    0 1px 1px oklch(0.208 0.007 250 / 0.04);
+  --shadow-md:
+    0 2px 4px oklch(0.208 0.007 250 / 0.05),
+    0 4px 12px oklch(0.208 0.007 250 / 0.08);
+  --shadow-lg:
+    0 4px 8px oklch(0.208 0.007 250 / 0.05),
+    0 12px 32px oklch(0.208 0.007 250 / 0.10);
+  --shadow-focus: 0 0 0 3px oklch(0.620 0.185 var(--accent-h) / 0.35);
+
+  /* --- Motion ----------------------------------------------------------- */
+  --dur-fast:  150ms;   /* hover, press — micro-feedback */
+  --dur-base:  250ms;   /* state changes, toggles */
+  --dur-slow:  400ms;   /* entrances, layout shifts. Ceiling. */
+
+  --ease-out:    cubic-bezier(0.16, 1, 0.30, 1);    /* entering — snappy */
+  --ease-in:     cubic-bezier(0.55, 0, 0.85, 0.35); /* exiting */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* toggles, drags */
+
+  /* --- Elevation order -------------------------------------------------- */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+}
+
+/* ===========================================================================
+   Dark theme — only the semantic layer flips. Ramps are untouched.
+   Two rules that matter:
+     · Dark surfaces are NOT pure black. #000 makes shadows invisible and
+       edges vibrate. Start at --n-950.
+     · Elevation in dark mode goes UP in lightness, not up in shadow.
+   =========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface:         var(--n-950);
+    --surface-raised:  var(--n-900);
+    --surface-sunken:  oklch(0.115 0.006 var(--n-h));
+    --surface-overlay: var(--n-800);
+    --surface-hover:   var(--n-800);
+    --surface-active:  var(--n-700);
+    --scrim:           oklch(0.08 0.004 250 / 0.65);
+
+    --border:             var(--n-800);   /* 1.3:1 — decorative */
+    --border-strong:      var(--n-700);   /* 1.9:1 — decorative */
+    --border-interactive: var(--n-500);   /* 4.2:1 — control edges */
+
+    --text:            var(--n-100);   /* 18.0:1 on --surface */
+    --text-muted:      var(--n-400);   /*  7.6:1 — body-safe */
+    --text-subtle:     var(--n-500);   /*  4.2:1 */
+
+    /* Saturated accents vibrate on dark. Step lighter, drop chroma. */
+    --accent:          var(--accent-400);
+    --accent-hover:    var(--accent-300);
+    --accent-subtle:   oklch(0.280 0.070 var(--accent-h));
+    --accent-text:     var(--accent-300);
+    --text-on-accent:  var(--n-950);
+
+    /* On dark tints the vivid values already clear 4.5:1 (6.6 / 7.8 / 5.4 / 6.4),
+       so --x-text can alias --x here. The split only matters in light mode. */
+    --success:      oklch(0.720 0.140 150);
+    --success-bg:   oklch(0.260 0.045 150);
+    --success-text: var(--success);
+    --warning:      oklch(0.800 0.140  85);
+    --warning-bg:   oklch(0.280 0.050  75);
+    --warning-text: var(--warning);
+    --danger:       oklch(0.700 0.170  25);
+    --danger-bg:    oklch(0.270 0.060  25);
+    --danger-text:  var(--danger);
+    --info:         oklch(0.720 0.120 230);
+    --info-bg:      oklch(0.260 0.045 230);
+    --info-text:    var(--info);
+
+    /* Shadows barely read on dark; lean on --surface-raised for elevation. */
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.30);
+    --shadow-md: 0 2px 4px oklch(0 0 0 / 0.25), 0 4px 12px oklch(0 0 0 / 0.30);
+    --shadow-lg: 0 4px 8px oklch(0 0 0 / 0.25), 0 12px 32px oklch(0 0 0 / 0.40);
+  }
+}
+
+/* Explicit opt-in dark, for a manual theme toggle. Mirrors the block above. */
+[data-theme="dark"] {
+  --success:      oklch(0.720 0.140 150);
+  --success-bg:   oklch(0.260 0.045 150);
+  --success-text: var(--success);
+  --warning:      oklch(0.800 0.140  85);
+  --warning-bg:   oklch(0.280 0.050  75);
+  --warning-text: var(--warning);
+  --danger:       oklch(0.700 0.170  25);
+  --danger-bg:    oklch(0.270 0.060  25);
+  --danger-text:  var(--danger);
+  --info:         oklch(0.720 0.120 230);
+  --info-bg:      oklch(0.260 0.045 230);
+  --info-text:    var(--info);
+  --surface:         var(--n-950);
+  --surface-raised:  var(--n-900);
+  --surface-sunken:  oklch(0.115 0.006 var(--n-h));
+  --surface-overlay: var(--n-800);
+  --surface-hover:   var(--n-800);
+  --surface-active:  var(--n-700);
+  --scrim:           oklch(0.08 0.004 250 / 0.65);
+  --border:             var(--n-800);
+  --border-strong:      var(--n-700);
+  --border-interactive: var(--n-500);
+  --text:            var(--n-100);
+  --text-muted:      var(--n-400);
+  --text-subtle:     var(--n-500);
+  --accent:          var(--accent-400);
+  --accent-hover:    var(--accent-300);
+  --accent-subtle:   oklch(0.280 0.070 var(--accent-h));
+  --accent-text:     var(--accent-300);
+  --text-on-accent:  var(--n-950);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.30);
+  --shadow-md: 0 2px 4px oklch(0 0 0 / 0.25), 0 4px 12px oklch(0 0 0 / 0.30);
+  --shadow-lg: 0 4px 8px oklch(0 0 0 / 0.25), 0 12px 32px oklch(0 0 0 / 0.40);
+}
+
+/* ===========================================================================
+   Minimal base layer. Everything here earns its place.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-semi);
+  /* Large type needs negative tracking; default spacing looks loose at 32px+ */
+  letter-spacing: -0.015em;
+}
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+
+p { margin: 0; max-width: var(--measure); }
+
+/* Focus: visible for keyboard users, absent for mouse users. Never remove
+   without replacing — this is an accessibility floor, not a style choice. */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Inputs inherit type by default in no browser. Fix once, here. */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+button:disabled, [aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+
+/* Non-negotiable. Vestibular disorders are real; so are audits. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -7,6 +7,10 @@ the CLI is intentionally tiny:
     leetcode-coach plan          "I have 45 minutes" -> today's plan
     leetcode-coach done          tell the coach how it went (plain English)
     leetcode-coach progress      a quick look at where you are
+    leetcode-coach target        aim at a company + interview date
+    leetcode-coach research      refresh what that company asks (datasets + web)
+    leetcode-coach campaign      the full week-by-week plan to the interview
+    leetcode-coach dashboard     open the visual dashboard in your browser
 
 `plan` then `done` is the whole daily loop.
 """
@@ -20,7 +24,7 @@ import sys
 from pathlib import Path
 
 from . import llm
-from .coach import Coach, Plan, PlanItem
+from .coach import Coach, Plan
 from .roadmap import available_roadmaps, load_roadmap
 from .store import Store, default_state_path
 
@@ -53,50 +57,6 @@ def cyan(t: str) -> str:
 
 def yellow(t: str) -> str:
     return _c(t, "33")
-
-
-def _plan_cache_path(store: Store) -> Path:
-    return store.path.parent / "last_plan.json"
-
-
-def _save_plan(store: Store, plan: Plan) -> None:
-    payload = {
-        "focus": plan.focus,
-        "coach_note": plan.coach_note,
-        "items": [
-            {
-                "title": i.title,
-                "kind": i.kind,
-                "difficulty": i.difficulty,
-                "topic": i.topic,
-                "estimated_minutes": i.estimated_minutes,
-                "reason": i.reason,
-            }
-            for i in plan.items
-        ],
-    }
-    path = _plan_cache_path(store)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2))
-
-
-def _load_plan(store: Store) -> Plan | None:
-    path = _plan_cache_path(store)
-    if not path.exists():
-        return None
-    raw = json.loads(path.read_text())
-    items = [
-        PlanItem(
-            title=i["title"],
-            kind=i["kind"],
-            difficulty=i["difficulty"],
-            topic=i["topic"],
-            estimated_minutes=i["estimated_minutes"],
-            reason=i["reason"],
-        )
-        for i in raw.get("items", [])
-    ]
-    return Plan(focus=raw.get("focus", "balanced"), coach_note=raw.get("coach_note", ""), items=items)
 
 
 def _parse_minutes(tokens: list[str]) -> int | None:
@@ -176,7 +136,6 @@ def cmd_plan(args: argparse.Namespace) -> int:
         print(yellow(f"\n{exc}"))
         return 2
 
-    _save_plan(store, plan)
     _render_plan(plan, minutes)
     return 0
 
@@ -229,7 +188,7 @@ def cmd_done(args: argparse.Namespace) -> int:
         print(yellow("Nothing to record."))
         return 1
 
-    plan = _load_plan(store)
+    plan = coach.load_plan()
     print(dim("Updating your history..."))
     try:
         result = coach.record_feedback(feedback, plan=plan)
@@ -279,6 +238,12 @@ def cmd_progress(args: argparse.Namespace) -> int:
     print(f"  Attempted: {p['attempted']}/{p['total']}")
     if p["due_reviews"]:
         print(f"  Reviews due: {yellow(str(p['due_reviews']))}")
+    t = p.get("target")
+    if t:
+        when = f", {t['days_left']} days to go" if t.get("days_left") is not None else ""
+        print(f"  Target: {bold(t['company'])}{when} · readiness {cyan(str(t['readiness']) + '%')}")
+        if t["weak_spots"]:
+            print(dim(f"  Weak spots: {', '.join(t['weak_spots'])}"))
     print()
     print(dim("By topic:"))
     for t in p["by_topic"]:
@@ -288,6 +253,111 @@ def cmd_progress(args: argparse.Namespace) -> int:
         print(f"  {bar}  {t['topic']}  {dim(str(t['solved']) + '/' + str(t['total']))}")
     print()
     return 0
+
+
+def cmd_target(args: argparse.Namespace) -> int:
+    coach = Coach(store=Store(args.state))
+    if args.clear:
+        coach.clear_target()
+        print(green("✓ Target cleared. Back to the plain roadmap."))
+        return 0
+    if not args.company:
+        state = coach.store.load()
+        if state.target:
+            print(f"Target: {bold(state.target.company)}  interview {state.target.interview_date or '(no date)'}")
+        else:
+            print(dim("No target yet. e.g. `leetcode-coach target Anthropic --date 2026-12-25`"))
+        return 0
+    try:
+        t = coach.set_target(" ".join(args.company), args.date, args.minutes)
+    except ValueError:
+        print(yellow("Dates look like 2026-12-25."))
+        return 1
+    print(green(f"✓ Preparing you for {bold(t.company)}" + (f" on {t.interview_date}." if t.interview_date else ".")))
+    print("Next, learn what they ask:")
+    print(cyan("    leetcode-coach research"))
+    return 0
+
+
+def cmd_research(args: argparse.Namespace) -> int:
+    coach = Coach(store=Store(args.state))
+    try:
+        profile = coach.refresh_company(progress=lambda m: print(dim(m)))
+    except (RuntimeError, llm.LLMError) as exc:
+        print(yellow(str(exc)))
+        return 2
+    print()
+    print(bold(f"{profile['company']} — {len(profile['problems'])} problems to know"))
+    print(dim(f"  datasets: {profile['dataset_count']} rows · web: {profile['web_status']}"))
+    if profile["interview_format"]:
+        print()
+        print(profile["interview_format"])
+    print()
+    for p in profile["problems"][:12]:
+        tag = cyan("practical") if p["kind"] == "practical" else dim(p["difficulty"])
+        print(f"  {_bar(round(p['weight'] * 10), 10, 10)}  {p['title']}  [{tag}]  {dim(p['topic'])}")
+    print()
+    print("Now build the full plan to your interview:")
+    print(cyan("    leetcode-coach campaign"))
+    return 0
+
+
+def cmd_campaign(args: argparse.Namespace) -> int:
+    coach = Coach(store=Store(args.state))
+    campaign = None if args.regenerate else coach.load_campaign()
+    if campaign is None:
+        try:
+            campaign = coach.generate_campaign(progress=lambda m: print(dim(m)))
+        except (RuntimeError, llm.LLMError) as exc:
+            print(yellow(str(exc)))
+            return 2
+    print()
+    print(bold(campaign["summary"]))
+    print()
+    for i, w in enumerate(campaign["weeks"], 1):
+        print(f"  {bold('Week ' + str(i))}  {dim(w['start'] + ' → ' + w['end'])}  {w['theme']}")
+        titles = ", ".join(p["title"] for p in w["problems"])
+        print(dim(f"     {titles}"))
+    print()
+    return 0
+
+
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    from .web import serve
+
+    state = args.state
+    if args.demo:
+        state = _prepare_demo(args.demo)
+        if state is None:
+            return 1
+    serve(state_path=state, port=args.port, open_browser=not args.no_browser)
+    return 0
+
+
+def _prepare_demo(scenario: str) -> Path | None:
+    """Copy a recorded scenario to a throwaway home and pin the environment.
+
+    Demo content was generated by a real run, so the UI shows real intel and
+    plans. Buttons go to the offline fake coach: no API calls, no credits.
+    Every launch starts from the pristine fixture.
+    """
+    import os
+    import shutil
+    import tempfile
+
+    src = Path(__file__).parent / "demo" / scenario
+    if not src.is_dir():
+        choices = sorted(p.name for p in (Path(__file__).parent / "demo").iterdir() if p.is_dir())
+        print(yellow(f"Unknown demo {scenario!r}. Choose from: {', '.join(choices)}"))
+        return None
+    meta = json.loads((src / "demo.json").read_text())
+    home = Path(tempfile.mkdtemp(prefix=f"lc-demo-{scenario}-"))
+    shutil.copytree(src, home, dirs_exist_ok=True)
+    os.environ["LEETCODE_COACH_PROVIDER"] = "fake"
+    os.environ["LEETCODE_COACH_TODAY"] = meta["today"]
+    os.environ["LEETCODE_COACH_DEMO"] = meta["label"]
+    print(dim(f"Demo '{scenario}' — {meta['label']}, today pinned to {meta['today']}. No API calls."))
+    return home / "state.json"
 
 
 def _bar(done: int, total: int, width: int = 12) -> str:
@@ -322,6 +392,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_prog = sub.add_parser("progress", help="See where you are on the roadmap.")
     p_prog.set_defaults(func=cmd_progress)
+
+    p_tgt = sub.add_parser("target", help="Aim at a company, e.g. `target Anthropic --date 2026-12-25`.")
+    p_tgt.add_argument("company", nargs="*", help="Company name.")
+    p_tgt.add_argument("--date", help="Interview date (YYYY-MM-DD).")
+    p_tgt.add_argument("--minutes", type=int, help="Typical minutes per day you can practise.")
+    p_tgt.add_argument("--clear", action="store_true", help="Remove the target.")
+    p_tgt.set_defaults(func=cmd_target)
+
+    p_res = sub.add_parser("research", help="Refresh what your target company asks.")
+    p_res.set_defaults(func=cmd_research)
+
+    p_camp = sub.add_parser("campaign", help="Show the full plan to your interview.")
+    p_camp.add_argument("--regenerate", action="store_true", help="Re-plan from today.")
+    p_camp.set_defaults(func=cmd_campaign)
+
+    p_dash = sub.add_parser("dashboard", help="Open the visual dashboard (localhost only).")
+    p_dash.add_argument("--port", type=int, default=8765)
+    p_dash.add_argument("--no-browser", action="store_true")
+    p_dash.add_argument(
+        "--demo", nargs="?", const="midway", metavar="SCENARIO",
+        help="Recorded demo data, no API calls (midway | day1; default midway).",
+    )
+    p_dash.set_defaults(func=cmd_dashboard)
 
     return parser
 

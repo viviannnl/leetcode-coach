@@ -74,10 +74,21 @@ class ProblemRecord:
 
 
 @dataclass
+class Target:
+    """The interview the user is preparing for."""
+
+    company: str  # display name, e.g. "Anthropic"
+    interview_date: str | None = None  # ISO date, e.g. "2026-12-25"
+
+
+@dataclass
 class State:
     roadmap_id: str | None = None
     created: str = ""
     records: dict[str, ProblemRecord] = field(default_factory=dict)
+    target: Target | None = None
+    # Typical minutes per day, used to size the multi-week plan.
+    daily_minutes: int = 60
 
     def record_for(self, title: str, topic: str) -> ProblemRecord:
         rec = self.records.get(title)
@@ -107,6 +118,8 @@ class Store:
             roadmap_id=raw.get("roadmap_id"),
             created=raw.get("created", ""),
             records=records,
+            target=Target(**raw["target"]) if raw.get("target") else None,
+            daily_minutes=raw.get("daily_minutes", 60),
         )
 
     def save(self, state: State) -> None:
@@ -115,6 +128,8 @@ class Store:
             "roadmap_id": state.roadmap_id,
             "created": state.created or date.today().isoformat(),
             "records": {title: asdict(rec) for title, rec in state.records.items()},
+            "target": asdict(state.target) if state.target else None,
+            "daily_minutes": state.daily_minutes,
         }
         # Write atomically so a crash mid-write can't corrupt history.
         tmp = self.path.with_suffix(".json.tmp")

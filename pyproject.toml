@@ -9,7 +9,8 @@ description = "An AI coach that decides exactly what LeetCode problem you should
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "anthropic>=0.40",
+    "anthropic>=0.116",
+    "flask>=3",
 ]
 
 [project.scripts]
@@ -19,4 +20,4 @@ leetcode-coach = "coach.cli:main"
 packages = ["coach"]
 
 [tool.setuptools.package-data]
-coach = ["data/*.json"]
+coach = ["data/*.json", "static/*", "demo/*/*.json", "demo/*/companies/*.json"]

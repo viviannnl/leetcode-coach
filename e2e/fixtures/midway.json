@@ -1,0 +1,2318 @@
+{
+    "activity": [
+        {
+            "date": "2026-11-24",
+            "minutes": 30,
+            "notes": "Mixed up when to create the clone vs. when to recurse.",
+            "outcome": "viewed_solution",
+            "title": "Clone Graph",
+            "topic": "Graphs",
+            "used_hint": false,
+            "viewed_solution": true
+        },
+        {
+            "date": "2026-11-24",
+            "minutes": 11,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Find Duplicate File in System",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-23",
+            "minutes": 2,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Contains Duplicate",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-23",
+            "minutes": 60,
+            "notes": "Cleaner this time: designed for TTL from level 1.",
+            "outcome": "solved_with_hints",
+            "title": "In-memory database (multi-level OA)",
+            "topic": "Practical Coding",
+            "used_hint": true,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-23",
+            "minutes": 18,
+            "notes": "",
+            "outcome": "solved_independently",
+            "title": "Number of Islands",
+            "topic": "Graphs",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-23",
+            "minutes": 3,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Two Sum",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-22",
+            "minutes": 7,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Encode and Decode Strings",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-22",
+            "minutes": 6,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Group Anagrams",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-22",
+            "minutes": 3,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Valid Anagram",
+            "topic": "Arrays & Hashing",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-21",
+            "minutes": 4,
+            "notes": "",
+            "outcome": "reviewed_easily",
+            "title": "Binary Search",
+            "topic": "Binary Search",
+            "used_hint": false,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-21",
+            "minutes": 55,
+            "notes": "Size \u2192 partial hash \u2192 full hash; needed a nudge on streaming reads.",
+            "outcome": "solved_with_hints",
+            "title": "File deduplication at scale",
+            "topic": "Practical Coding",
+            "used_hint": true,
+            "viewed_solution": false
+        },
+        {
+            "date": "2026-11-20",
+            "minutes": 75,
+            "notes": "Levels 1-3 done; TTL + history at level 4 forced a messy refactor.",
+            "outcome": "struggled",
+            "title": "In-memory database (multi-level OA)",
+            "topic": "Practical Coding",
+            "used_hint": false,
+            "viewed_solution": false
+        }
+    ],
+    "campaign": {
+        "generated": "2026-11-13T23:41:02",
+        "stale": false,
+        "summary": "Build hashing and stateful-API fundamentals first, then BFS/DFS before the concurrent web crawler, then linked lists and stacks before LRU caching and the sampling profiler. Practical multi-level builds are spread across the weeks and treated as full sessions, with the highest-weight Anthropic problems repeated as reviews. The final days before Dec 25 are consolidation only: timed redos of the signature problems and no new topics.",
+        "weeks": [
+            {
+                "current": false,
+                "done": 5,
+                "end": "2026-11-15",
+                "focus_topics": [
+                    "Arrays & Hashing",
+                    "Canonical keys",
+                    "String parsing"
+                ],
+                "goal": "Fluently group, dedupe and serialize data with hash maps, ending with Find Duplicate File in System solved cleanly.",
+                "index": 1,
+                "past": true,
+                "problems": [
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/two-sum/",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-09",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Two Sum",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/contains-duplicate/",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-09",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Contains Duplicate",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/group-anagrams/",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-08",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Group Anagrams",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/encode-and-decode-strings/",
+                        "mastery": 1.0,
+                        "next_review": "2026-11-29",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Encode and Decode Strings",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/find-duplicate-file-in-system",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-10",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "Find Duplicate File in System",
+                        "topic": "Arrays & Hashing"
+                    }
+                ],
+                "start": "2026-11-13",
+                "theme": "Hashing foundations"
+            },
+            {
+                "current": false,
+                "done": 7,
+                "end": "2026-11-22",
+                "focus_topics": [
+                    "Practical Coding",
+                    "Arrays & Hashing",
+                    "Binary Search on timestamps",
+                    "File I/O and hashing"
+                ],
+                "goal": "Build the in-memory database through all OA levels (including TTL and history) and design file dedup with size-then-hash streaming.",
+                "index": 2,
+                "past": true,
+                "problems": [
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/valid-anagram/",
+                        "mastery": 1.0,
+                        "next_review": "2026-11-29",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Valid Anagram",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/top-k-frequent-elements/",
+                        "mastery": 0.425,
+                        "next_review": "2026-11-19",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Top K Frequent Elements",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/binary-search/",
+                        "mastery": 1.0,
+                        "next_review": "2026-11-28",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Binary Search",
+                        "topic": "Binary Search"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/time-based-key-value-store/",
+                        "mastery": 0.425,
+                        "next_review": "2026-11-21",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Time Based Key-Value Store",
+                        "topic": "Binary Search"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.5,
+                        "next_review": "2026-11-25",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "In-memory database (multi-level OA)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.425,
+                        "next_review": "2026-11-23",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "File deduplication at scale",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/group-anagrams/",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-08",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Group Anagrams",
+                        "topic": "Arrays & Hashing"
+                    }
+                ],
+                "start": "2026-11-16",
+                "theme": "Stateful stores and file dedup"
+            },
+            {
+                "current": true,
+                "done": 2,
+                "end": "2026-11-29",
+                "focus_topics": [
+                    "Graphs",
+                    "BFS/DFS",
+                    "Concurrency (threads, locks, executors)",
+                    "Practical Coding"
+                ],
+                "goal": "Master graph traversal with visited sets, then implement Web Crawler Multithreaded with thread-safe state and clean termination.",
+                "index": 3,
+                "past": false,
+                "problems": [
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/number-of-islands/",
+                        "mastery": 0.8,
+                        "next_review": "2026-11-26",
+                        "source": "roadmap",
+                        "status": "solved",
+                        "title": "Number of Islands",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/clone-graph/",
+                        "mastery": 0.25,
+                        "next_review": "2026-11-25",
+                        "source": "roadmap",
+                        "status": "in_progress",
+                        "title": "Clone Graph",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/rotting-oranges/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Rotting Oranges",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/course-schedule/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Course Schedule",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/web-crawler",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Web Crawler",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/web-crawler-multithreaded",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Web Crawler Multithreaded",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.085,
+                        "next_review": "2026-11-14",
+                        "source": "company",
+                        "status": "in_progress",
+                        "title": "Banking system (multi-level OA)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/find-duplicate-file-in-system",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-10",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "Find Duplicate File in System",
+                        "topic": "Arrays & Hashing"
+                    }
+                ],
+                "start": "2026-11-23",
+                "theme": "BFS/DFS to concurrent crawler"
+            },
+            {
+                "current": false,
+                "done": 1,
+                "end": "2026-12-06",
+                "focus_topics": [
+                    "Linked List",
+                    "Stack",
+                    "Caching",
+                    "Practical Coding"
+                ],
+                "goal": "Implement an O(1) LRU Cache from scratch and convert stack samples into correct trace events, including recursion and same-timestamp edge cases.",
+                "index": 4,
+                "past": false,
+                "problems": [
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/reverse-linked-list/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Reverse Linked List",
+                        "topic": "Linked List"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/merge-two-sorted-lists/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Merge Two Sorted Lists",
+                        "topic": "Linked List"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/linked-list-cycle/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Linked List Cycle",
+                        "topic": "Linked List"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/lru-cache/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "LRU Cache",
+                        "topic": "Linked List"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/valid-parentheses/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Valid Parentheses",
+                        "topic": "Stack"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/min-stack/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Min Stack",
+                        "topic": "Stack"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/exclusive-time-of-functions",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Exclusive Time of Functions",
+                        "topic": "Stack"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Stack samples to trace events (sampling profiler)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.5,
+                        "next_review": "2026-11-25",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "In-memory database (multi-level OA)",
+                        "topic": "Practical Coding"
+                    }
+                ],
+                "start": "2026-11-30",
+                "theme": "Linked lists, stacks, LRU and profiler"
+            },
+            {
+                "current": false,
+                "done": 0,
+                "end": "2026-12-13",
+                "focus_topics": [
+                    "Practical Coding",
+                    "Durability / write-ahead log",
+                    "Tries",
+                    "Multi-level OA"
+                ],
+                "goal": "Make an LRU memoize decorator crash-durable with a WAL, and use tries for the tokenizer and autocomplete.",
+                "index": 5,
+                "past": false,
+                "problems": [
+                    {
+                        "difficulty": "Hard",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "LRU memoization decorator, crash-durable",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/implement-trie-prefix-tree/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Implement Trie Prefix Tree",
+                        "topic": "Tries"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Greedy tokenizer",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Hard",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/design-search-autocomplete-system",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Design Search Autocomplete System",
+                        "topic": "Tries"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Cloud file storage / file cache (multi-level OA)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/lru-cache/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "LRU Cache",
+                        "topic": "Linked List"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/web-crawler-multithreaded",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Web Crawler Multithreaded",
+                        "topic": "Graphs"
+                    }
+                ],
+                "start": "2026-12-07",
+                "theme": "Durability, tries and tokenizers"
+            },
+            {
+                "current": false,
+                "done": 1,
+                "end": "2026-12-20",
+                "focus_topics": [
+                    "PR review in unfamiliar code",
+                    "Rejection sampling",
+                    "Distributed aggregation",
+                    "Agent loops",
+                    "Stateful design"
+                ],
+                "goal": "Run one full PR-review session and clear the remaining lower-weight practicals, while re-solving dedup and the stack problems under time pressure.",
+                "index": 6,
+                "past": false,
+                "problems": [
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "PR review and improvement round",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Global mode across distributed shards",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Fair coin from a biased coin",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/implement-rand10-using-rand7",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Implement Rand10() Using Rand7()",
+                        "topic": "Math & Geometry"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Stock-price agent with tool-calling loop",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "new",
+                        "link": "https://leetcode.com/problems/design-twitter/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "Design Twitter",
+                        "topic": "Heap / Priority Queue"
+                    },
+                    {
+                        "difficulty": "Easy",
+                        "due": false,
+                        "kind": "new",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Image processing with PIL",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.425,
+                        "next_review": "2026-11-23",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "File deduplication at scale",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/exclusive-time-of-functions",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Exclusive Time of Functions",
+                        "topic": "Stack"
+                    }
+                ],
+                "start": "2026-12-14",
+                "theme": "Breadth: PR review, sampling, distributed"
+            },
+            {
+                "current": false,
+                "done": 3,
+                "end": "2026-12-25",
+                "focus_topics": [
+                    "Timed practice",
+                    "Scale and concurrency follow-ups",
+                    "Practical Coding"
+                ],
+                "goal": "Re-solve the top signature problems timed, narrating scale follow-ups aloud, and keep the day before the interview light.",
+                "index": 7,
+                "past": false,
+                "problems": [
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.5,
+                        "next_review": "2026-11-25",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "In-memory database (multi-level OA)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/web-crawler-multithreaded",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Web Crawler Multithreaded",
+                        "topic": "Graphs"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": true,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.425,
+                        "next_review": "2026-11-23",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "File deduplication at scale",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "Stack samples to trace events (sampling profiler)",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Hard",
+                        "due": false,
+                        "kind": "review",
+                        "link": "",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "company",
+                        "status": "new",
+                        "title": "LRU memoization decorator, crash-durable",
+                        "topic": "Practical Coding"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/find-duplicate-file-in-system",
+                        "mastery": 1.0,
+                        "next_review": "2026-12-10",
+                        "source": "company",
+                        "status": "solved",
+                        "title": "Find Duplicate File in System",
+                        "topic": "Arrays & Hashing"
+                    },
+                    {
+                        "difficulty": "Medium",
+                        "due": false,
+                        "kind": "review",
+                        "link": "https://leetcode.com/problems/lru-cache/",
+                        "mastery": 0.0,
+                        "next_review": null,
+                        "source": "roadmap",
+                        "status": "new",
+                        "title": "LRU Cache",
+                        "topic": "Linked List"
+                    }
+                ],
+                "start": "2026-12-21",
+                "theme": "Consolidation and timed mocks"
+            }
+        ]
+    },
+    "company": {
+        "advice": [
+            "Treat the CodeSignal OA as a speed test. Code fast against the exact public API, get each level's tests passing, and expect later levels to force a refactor. Polish at the end.",
+            "Edge cases still matter. A candidate scoring about 770/800 was rejected, so check TTL boundaries, missing keys, and same-timestamp ordering.",
+            "Drill the small known question bank: in-memory DB, banking system, cloud file storage, web crawler (then concurrent), stack samples to trace events, file dedup, and the LRU/memoize cache made crash-durable.",
+            "Know your language's standard library cold. In Python that means threading, concurrent.futures, asyncio, hashlib, os/pathlib and collections. Practise thread-safe visited sets and clean termination.",
+            "After a working first version, expect follow-ups on concurrency, data larger than memory, real-time or streaming input, and persistence (WAL or disk). Rehearse how you'd discuss each.",
+            "Prepare seriously for the culture/values round: a specific 'why Anthropic' with a real example, plus your views on AI safety. Reports call it the hardest round."
+        ],
+        "dataset_count": 4,
+        "interview_format": "Typical 2025\u20132026 pipeline: a 90-min CodeSignal OA (one progressive 4-level project; a 6-part variant was reported in June 2026), a 30-min recruiter call, then a 45\u201360 min live coding screen on CodeSignal, Replit or Colab. That screen is one problem with escalating follow-ups. The virtual onsite has 4\u20135 rounds of about 1 hour each: 1\u20132 coding, 1\u20132 system design, hiring manager, and culture/values. Some 2026 loops add a PR-review round where Claude is available. The focus is practical engineering rather than classic DS&A: stateful APIs that evolve, hashing and file I/O, BFS plus concurrency, caching and durability, and scale follow-ups.",
+        "problems": [
+            {
+                "description": "Build a key/field store class in levels: SET/GET/DELETE, then filtered/prefix scans, then TTL with timestamps, then history lookups or backup/restore.",
+                "difficulty": "Medium",
+                "due": true,
+                "evidence": "The most-reported CodeSignal OA problem, with versions seen across 2025\u20132026. It is graded by tests and later levels force refactors.",
+                "evidence_urls": [
+                    "https://igotanoffer.com/en/advice/anthropic-interview-questions",
+                    "https://www.1point3acres.com/interview/problems/a3816a9d-04af-5a4a-8363-20be75018fd2",
+                    "https://www.fastprep.io/problems/anthropic-in-memory-database-historical-lookup",
+                    "https://www.fastprep.io/problems/anthropic-in-memory-database-backup-restore",
+                    "https://www.glassdoor.com/Interview/Design-an-in-memory-database-and-a-function-to-do-odd-CRUD-operations-Written-as-poorly-as-possible-QTN_6453458.htm"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.5,
+                "next_review": "2026-11-25",
+                "source": "company",
+                "status": "solved",
+                "title": "In-memory database (multi-level OA)",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.95
+            },
+            {
+                "description": "Crawl all same-hostname URLs concurrently via htmlParser.getUrls, using thread-safe visited state and clean termination.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Dataset frequency 100% (6+ months ago). Web reports show the crawler going from single-threaded to concurrent in a Sep 2025 live screen and a Sep 2025 Staff onsite. Most of the round is concurrency: threads vs processes vs async, and multi-machine scaling.",
+                "evidence_urls": [
+                    "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx",
+                    "https://www.teamblind.com/post/anthropic-phone-screen-tfrn5jkm",
+                    "https://www.1point3acres.com/interview/problems/company/anthropic",
+                    "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad",
+                    "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
+                ],
+                "from_dataset": true,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/web-crawler-multithreaded",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Web Crawler Multithreaded",
+                "topic": "Graphs",
+                "url": "https://leetcode.com/problems/web-crawler-multithreaded",
+                "weight": 0.9
+            },
+            {
+                "description": "Find duplicate files on disk by size, then content hash with streamed reads. Follow-ups: I/O-bound vs CPU-bound work, more files than memory, real-time detection as files arrive.",
+                "difficulty": "Medium",
+                "due": true,
+                "evidence": "Reported in a Sep 2025 phone screen (Replit), a Mar 2026 onsite, and a late-2026 CodeSignal screen (45 min, no helper code). LinkJob says it was replaced by LRU after Sep 2025, but other sources still report it in late 2026.",
+                "evidence_urls": [
+                    "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
+                    "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470",
+                    "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read",
+                    "https://aceoffer.app/interviews/anthropic/coding-questions",
+                    "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.425,
+                "next_review": "2026-11-23",
+                "source": "company",
+                "status": "solved",
+                "title": "File deduplication at scale",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.9
+            },
+            {
+                "description": "Group files with identical content, given directory/content strings.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Dataset frequency 87.5% (6+ months ago). It is the base of the file-dedup question reported in Sep 2025, Mar 2026 and late 2026 screens and onsites. AceOffer calls dedup the most reported question (low confidence).",
+                "evidence_urls": [
+                    "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470",
+                    "https://aceoffer.app/interviews/anthropic/coding-questions",
+                    "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
+                ],
+                "from_dataset": true,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/find-duplicate-file-in-system",
+                "mastery": 1.0,
+                "next_review": "2026-12-10",
+                "source": "company",
+                "status": "solved",
+                "title": "Find Duplicate File in System",
+                "topic": "Arrays & Hashing",
+                "url": "https://leetcode.com/problems/find-duplicate-file-in-system",
+                "weight": 0.85
+            },
+            {
+                "description": "Convert timestamped call-stack samples into ordered start/end events by diffing consecutive stacks on common prefix. Handle recursion and same-timestamp ordering. Follow-up: only emit frames present for at least N consecutive samples.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Seen in a Feb 2026 phone screen, the viral Dec 2025 'leaked' video (C++ starter code), and a Jul 2025 PracHub entry.",
+                "evidence_urls": [
+                    "https://leetcode.com/discuss/post/7559983/",
+                    "https://www.teamblind.com/post/leaked-anthropic-interview-xxu4aoca",
+                    "https://github.com/ryanhestin/anthropic-challenge",
+                    "https://prachub.com/coding-questions/convert-stack-samples-to-trace-events"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Stack samples to trace events (sampling profiler)",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.85
+            },
+            {
+                "description": "BFS/DFS crawl of all URLs under the start URL's hostname using htmlParser.getUrls.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Dataset frequency 75% (6+ months ago). It is the single-threaded first part of the reported crawler question (Sep 2025).",
+                "evidence_urls": [
+                    "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx",
+                    "https://www.1point3acres.com/interview/problems/company/anthropic"
+                ],
+                "from_dataset": true,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/web-crawler",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Web Crawler",
+                "topic": "Graphs",
+                "url": "https://leetcode.com/problems/web-crawler",
+                "weight": 0.8
+            },
+            {
+                "description": "Implement an O(1) get/put LRU cache with a hash map and doubly linked list.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "It is the base of the reported LRU/memoization question: an added Sep 2025 onsite round, and AceOffer reports 12 instances, last seen Jul 2026.",
+                "evidence_urls": [
+                    "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
+                    "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/",
+                    "https://aceoffer.app/interviews/anthropic/coding-questions"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/lru-cache/",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "roadmap",
+                "status": "new",
+                "title": "LRU Cache",
+                "topic": "Linked List",
+                "url": "https://leetcode.com/problems/lru-cache",
+                "weight": 0.75
+            },
+            {
+                "description": "Extend a given Python LRU/memoize decorator, including canonical cache keys from args and kwargs. Then make it survive a crash with no data loss using disk persistence or a write-ahead log.",
+                "difficulty": "Hard",
+                "due": false,
+                "evidence": "Reported in an added Sep 2025 Staff onsite round. LinkJob says it replaced dedup after Sep 2025, and AceOffer reports 12 instances, last seen Jul 2026.",
+                "evidence_urls": [
+                    "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
+                    "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/",
+                    "https://aceoffer.app/interviews/anthropic/coding-questions"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "LRU memoization decorator, crash-durable",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.75
+            },
+            {
+                "description": "Implement core bank logic in levels: accounts, deposits and transfers, transaction logs, and later features such as rankings or scheduled payments.",
+                "difficulty": "Medium",
+                "due": true,
+                "evidence": "A CodeSignal OA variant reported on Blind (undated) and on NodeFlair.",
+                "evidence_urls": [
+                    "https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl",
+                    "https://nodeflair.com/companies/anthropic/interviews/senior-software-engineer-l86upq"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.085,
+                "next_review": "2026-11-14",
+                "source": "company",
+                "status": "in_progress",
+                "title": "Banking system (multi-level OA)",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.7
+            },
+            {
+                "description": "Compute each function's exclusive run time from start/end logs using a call stack.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Dataset frequency 75% (6+ months ago). The web report calls it related to the profiler stack-samples to trace-events question, working in the opposite direction.",
+                "evidence_urls": [
+                    "https://leetcode.com/discuss/post/7559983/",
+                    "https://prachub.com/coding-questions/convert-stack-samples-to-trace-events"
+                ],
+                "from_dataset": true,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/exclusive-time-of-functions",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Exclusive Time of Functions",
+                "topic": "Stack",
+                "url": "https://leetcode.com/problems/exclusive-time-of-functions",
+                "weight": 0.65
+            },
+            {
+                "description": "Simulate a cloud file storage service (add, get, delete and list files, users and quotas) using only the standard library, built up in levels.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "OA variant. AceOffer counts 3 reports, the last in July 2026 (low confidence). Also listed by IGotAnOffer.",
+                "evidence_urls": [
+                    "https://aceoffer.app/interviews/anthropic/coding-questions",
+                    "https://igotanoffer.com/en/advice/anthropic-interview-questions"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Cloud file storage / file cache (multi-level OA)",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.65
+            },
+            {
+                "description": "Given four pull requests in an unfamiliar TypeScript repo, with Claude available, pick one, improve it and push an update. Variants start from buggy code.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "New 2026 onsite format based on 2 candidate reports (Apr\u2013Jun 2026). Medium-low confidence.",
+                "evidence_urls": [
+                    "https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "PR review and improvement round",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.5
+            },
+            {
+                "description": "Store values with timestamps and return the latest value at or before a given time.",
+                "difficulty": "Medium",
+                "due": true,
+                "evidence": "Related practice: directly trains the TTL and historical-lookup levels of the in-memory DB OA.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/time-based-key-value-store/",
+                "mastery": 0.425,
+                "next_review": "2026-11-21",
+                "source": "roadmap",
+                "status": "solved",
+                "title": "Time Based Key-Value Store",
+                "topic": "Binary Search",
+                "url": "https://leetcode.com/problems/time-based-key-value-store",
+                "weight": 0.5
+            },
+            {
+                "description": "Convert text into token IDs from a vocabulary dict using greedy longest match, including unknown characters.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Undated and reported only by aggregators, so low confidence.",
+                "evidence_urls": [
+                    "https://aceoffer.app/interviews/anthropic/coding-questions",
+                    "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Greedy tokenizer",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.35
+            },
+            {
+                "description": "Group strings by a canonical hashed key.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Related practice: the same group-by-canonical-key pattern as file dedup and as building memoization cache keys.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/group-anagrams/",
+                "mastery": 1.0,
+                "next_review": "2026-12-08",
+                "source": "roadmap",
+                "status": "solved",
+                "title": "Group Anagrams",
+                "topic": "Arrays & Hashing",
+                "url": "https://leetcode.com/problems/group-anagrams",
+                "weight": 0.35
+            },
+            {
+                "description": "Deep-copy a graph using BFS or DFS with a visited map.",
+                "difficulty": "Medium",
+                "due": true,
+                "evidence": "Related practice: the BFS-with-visited-map pattern behind the web crawler.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/clone-graph/",
+                "mastery": 0.25,
+                "next_review": "2026-11-25",
+                "source": "roadmap",
+                "status": "in_progress",
+                "title": "Clone Graph",
+                "topic": "Graphs",
+                "url": "https://leetcode.com/problems/clone-graph",
+                "weight": 0.35
+            },
+            {
+                "description": "Use PIL to convert images to grayscale, scale and resize them.",
+                "difficulty": "Easy",
+                "due": false,
+                "evidence": "A single Mar 2026 phone-screen report.",
+                "evidence_urls": [
+                    "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Image processing with PIL",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.3
+            },
+            {
+                "description": "Simulate a fair coin flip using only a biased coin (von Neumann trick: flip twice, use HT/TH, retry on HH/TT).",
+                "difficulty": "Easy",
+                "due": false,
+                "evidence": "Phone-screen title only, so low confidence.",
+                "evidence_urls": [
+                    "https://prachub.com/companies/anthropic",
+                    "https://www.1point3acres.com/interview/problems/company/anthropic"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Fair coin from a biased coin",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.3
+            },
+            {
+                "description": "Implement insert, search and startsWith on a trie.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Related practice: trains the prefix-scan level of the in-memory DB and the autocomplete-style questions.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/implement-trie-prefix-tree/",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "roadmap",
+                "status": "new",
+                "title": "Implement Trie Prefix Tree",
+                "topic": "Tries",
+                "url": "https://leetcode.com/problems/implement-trie-prefix-tree",
+                "weight": 0.3
+            },
+            {
+                "description": "Serialize a list of strings to one string and back.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Related practice: serialization skill needed for the DB backup/restore level and for persisting a durable LRU to disk.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/encode-and-decode-strings/",
+                "mastery": 1.0,
+                "next_review": "2026-11-29",
+                "source": "roadmap",
+                "status": "solved",
+                "title": "Encode and Decode Strings",
+                "topic": "Arrays & Hashing",
+                "url": "https://leetcode.com/problems/encode-and-decode-strings",
+                "weight": 0.3
+            },
+            {
+                "description": "Return the top-3 historical sentences matching a typed prefix, updating counts as input arrives.",
+                "difficulty": "Hard",
+                "due": false,
+                "evidence": "A 'hashtag autocomplete' title was reported, and the report says it may resemble LC 642. Undated, low confidence.",
+                "evidence_urls": [
+                    "https://www.1point3acres.com/interview/problems/company/anthropic"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/design-search-autocomplete-system",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Design Search Autocomplete System",
+                "topic": "Tries",
+                "url": "https://leetcode.com/problems/design-search-autocomplete-system",
+                "weight": 0.25
+            },
+            {
+                "description": "Design a stateful class with post, follow and feed operations.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Related practice: multi-method stateful API design under an exact interface, like the OA classes.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/design-twitter/",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "roadmap",
+                "status": "new",
+                "title": "Design Twitter",
+                "topic": "Heap / Priority Queue",
+                "url": "https://leetcode.com/problems/design-twitter",
+                "weight": 0.25
+            },
+            {
+                "description": "Stack supporting O(1) getMin.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Related practice: stack-state bookkeeping used in Exclusive Time of Functions and the profiler trace-events question.",
+                "evidence_urls": [],
+                "from_dataset": false,
+                "from_web": false,
+                "in_roadmap": true,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/min-stack/",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "roadmap",
+                "status": "new",
+                "title": "Min Stack",
+                "topic": "Stack",
+                "url": "https://leetcode.com/problems/min-stack",
+                "weight": 0.25
+            },
+            {
+                "description": "Build a uniform rand10 from rand7 via rejection sampling.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "The report says the fair-coin question is similar in spirit to LC 470. Low confidence.",
+                "evidence_urls": [
+                    "https://prachub.com/companies/anthropic"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "leetcode",
+                "link": "https://leetcode.com/problems/implement-rand10-using-rand7",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Implement Rand10() Using Rand7()",
+                "topic": "Math & Geometry",
+                "url": "https://leetcode.com/problems/implement-rand10-using-rand7",
+                "weight": 0.2
+            },
+            {
+                "description": "Implement an agent loop that calls tools (e.g. a price lookup) and feeds the results back until it reaches an answer.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Title only, undated, low confidence.",
+                "evidence_urls": [
+                    "https://www.1point3acres.com/interview/problems/company/anthropic"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Stock-price agent with tool-calling loop",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.2
+            },
+            {
+                "description": "Compute the most frequent value across data split over multiple shards or machines by merging per-shard counts.",
+                "difficulty": "Medium",
+                "due": false,
+                "evidence": "Title only, undated, low confidence.",
+                "evidence_urls": [
+                    "https://www.1point3acres.com/interview/problems/company/anthropic"
+                ],
+                "from_dataset": false,
+                "from_web": true,
+                "in_roadmap": false,
+                "kind": "practical",
+                "link": "",
+                "mastery": 0.0,
+                "next_review": null,
+                "source": "company",
+                "status": "new",
+                "title": "Global mode across distributed shards",
+                "topic": "Practical Coding",
+                "url": "",
+                "weight": 0.2
+            }
+        ],
+        "sources": [
+            {
+                "kind": "dataset",
+                "status": "8 rows",
+                "title": "snehasishroy/leetcode-companywise-interview-questions",
+                "url": "https://github.com/snehasishroy/leetcode-companywise-interview-questions/tree/HEAD/anthropic"
+            },
+            {
+                "kind": "dataset",
+                "status": "company not listed",
+                "title": "liquidslr/interview-company-wise-problems",
+                "url": "https://github.com/liquidslr/interview-company-wise-problems"
+            },
+            {
+                "kind": "web",
+                "title": "Interviews 13512",
+                "url": "https://www.teamblind.com/browse/Interviews-13512?page=2"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/search/onsite"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=7"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=2"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/company/Anthropic/posts?page=10"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/company/Anthropic/posts?page=9"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=5"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic final round experience and goals 8z0msm06",
+                "url": "https://www.teamblind.com/post/anthropic-final-round-experience-and-goals-8z0msm06"
+            },
+            {
+                "kind": "web",
+                "title": "[OA + Coding Question] Anthropic Phone Screen",
+                "url": "https://leetcode.com/discuss/post/7559983/"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Experience & Questions",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic\u2019s Interview Process & Questions",
+                "url": "https://interviewing.io/anthropic-interview-questions"
+            },
+            {
+                "kind": "web",
+                "title": "I failed my Anthropic interview and came to tell you all about it so you don't have to",
+                "url": "https://blog.goncharov.page/i-failed-my-anthropic-interview-and-came-to-tell-you-all-about-it-so-you-dont-have-to"
+            },
+            {
+                "kind": "web",
+                "title": "AI Coding Interview Questions: Anthropic, Meta, OpenAI",
+                "url": "https://callsphere.ai/blog/ai-coding-interview-questions-2026-anthropic-meta-openai"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=9"
+            },
+            {
+                "kind": "web",
+                "title": "Artificial Intelligence",
+                "url": "https://www.teamblind.com/post/atlassian-interview-preparation-et67z8xk"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer (SWE) Interview Guide",
+                "url": "https://www.tryexponent.com/guides/anthropic-software-engineer-interview"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview (questions, process, prep) - IGotAnOffer",
+                "url": "https://igotanoffer.com/en/advice/anthropic-software-engineer-interview"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Experience \u2014 Onsite Loop with a 1-on-1 Chat System Design, File Dedup Coding, and a Culture Round I Couldn't Read",
+                "url": "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
+            },
+            {
+                "kind": "web",
+                "title": "2026 Anthropic Software Engineer Onsite PR Review Round, What It Tests: 2 Experiences",
+                "url": "https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Senior Software Engineer Interview Experience \u2014 Referral, Product-Focused System Design and an $850k Offer",
+                "url": "https://prachub.com/interview-experiences/anthropic-senior-software-engineer-interview-experience-referral-product-focused-system-design-and-an-850k-offer"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic System Design Interview (2026 Guide) - Aced (formerly Exponent)",
+                "url": "https://www.aced.io/blog/anthropic-system-design-interview"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Process: Rounds, Format & Timeline (2026)",
+                "url": "https://www.hack2hire.com/blog/anthropic-interview-process-rounds-format-timeline-2026"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Onsite Interview: Every Round, What It Tests, and How to Prepare \u00b7 SpaceComplexity",
+                "url": "https://spacecomplexity.ai/blog/anthropic-onsite-interview"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic on site interview distributed system role rpzmgjob",
+                "url": "https://www.teamblind.com/post/anthropic-on-site-interview-distributed-system-role-rpzmgjob"
+            },
+            {
+                "kind": "web",
+                "title": "Scoop: Anthropic candidates face blunt money question in job interviews",
+                "url": "https://www.axios.com/2026/08/24/scoop-anthropic-candidates-face-blunt-money-question"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Megathread",
+                "url": "https://www.teamblind.com/post/anthropic-interview-megathread-6estt896"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Discussions - Blind",
+                "url": "https://www.teamblind.com/company/Anthropic/posts"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview",
+                "url": "https://www.teamblind.com/post/anthropic-interview-szdhw35i"
+            },
+            {
+                "kind": "web",
+                "title": "Leaked Anthropic Interview",
+                "url": "https://www.teamblind.com/post/leaked-anthropic-interview-xxu4aoca"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic System Design Interviews",
+                "url": "https://www.teamblind.com/post/anthropic-system-design-interviews-64jja1oo"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic interview experience",
+                "url": "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx"
+            },
+            {
+                "kind": "web",
+                "title": "openai/anthropic interview difficulty compared to meta",
+                "url": "https://www.teamblind.com/post/openaianthropic-interview-difficulty-compared-to-meta-gpptpuwo"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Question: Design an in-memory database and a function to do odd CRUD operations. Written as poorly as possible",
+                "url": "https://www.glassdoor.com/Interview/Design-an-in-memory-database-and-a-function-to-do-odd-CRUD-operations-Written-as-poorly-as-possible-QTN_6453458.htm"
+            },
+            {
+                "kind": "web",
+                "title": "30+ Common Anthropic Interview Questions + Answers (by role) - IGotAnOffer",
+                "url": "https://igotanoffer.com/en/advice/anthropic-interview-questions"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Senior Software Engineer Interview Questions",
+                "url": "https://nodeflair.com/companies/anthropic/interviews/senior-software-engineer-l86upq"
+            },
+            {
+                "kind": "web",
+                "title": "Multi-Level In-Memory Database with TTL and Time Travel from Anthropic",
+                "url": "https://www.1point3acres.com/interview/problems/a3816a9d-04af-5a4a-8363-20be75018fd2"
+            },
+            {
+                "kind": "web",
+                "title": "In-Memory Database Historical Lookup (Anthropic Online Assessment) - Coding Interview Problem",
+                "url": "https://www.fastprep.io/problems/anthropic-in-memory-database-historical-lookup"
+            },
+            {
+                "kind": "web",
+                "title": "In-Memory Database with Backup and Restore (Anthropic Online Assessment) - Coding Interview Problem",
+                "url": "https://www.fastprep.io/problems/anthropic-in-memory-database-backup-restore"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Online Assessment -- In Memory Database - Docs",
+                "url": "https://aonecode.com/iq/docs/antropic/online-assessment/in-memory-db"
+            },
+            {
+                "kind": "web",
+                "title": "In-memory Database (Online Assessment) \u00b7 Anthropic - JobsMoi",
+                "url": "https://jobsmoi.com/question/anthropic/in-memory-database-online-assessment"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Senior Software Engineer Interview Questions",
+                "url": "https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Questions",
+                "url": "https://www.glassdoor.com.hk/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Interview Experience & Questions (2026)",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Software-Interview-Questions-E3764599.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Senior Software Engineer Interview Experience & Questions",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Questions (2026)",
+                "url": "https://www.glassdoor.co.uk/Interview/Anthropic-Interview-Questions-E8109027.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Senior Fullstack Software Engineer Interview Experience & Questions",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Senior-Fullstack-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,44.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Questions (2026)",
+                "url": "https://www.glassdoor.sg/Interview/Anthropic-Interview-Questions-E8109027.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Questions (2025)",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027_P2.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Experience & Questions (2026)",
+                "url": "https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027.htm"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Guide (2026)",
+                "url": "https://www.hellointerview.com/guides/anthropic/swe"
+            },
+            {
+                "kind": "web",
+                "title": "Complete guide to Anthropic's CodeSignal progressive coding assessment. Covers the 4-level format, verified problem types, scoring (520+ to advance), preparation framework, and worked examples. - Sundeep Teki",
+                "url": "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic AI Safety Fellow interview (questions, process, prep) - IGotAnOffer",
+                "url": "https://igotanoffer.com/en/advice/anthropic-ai-safety-fellow-interview"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Process & Timeline: 7 Steps to an Offer - IGotAnOffer",
+                "url": "https://igotanoffer.com/en/advice/anthropic-interview-process"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Staff Software Engineer Interview Guide (2026)",
+                "url": "https://www.hellointerview.com/guides/anthropic/staff"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic AI Safety Fellow Interview Guide",
+                "url": "https://www.aced.io/guides/anthropic-ai-safety-fellow-interview"
+            },
+            {
+                "kind": "web",
+                "title": "How to Pass the Anthropic Interview Process in 2026 (Stage-by-Stage Guide)",
+                "url": "https://leonstaff.com/blogs/anthropic-interview-process/"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic CodeSignal Interview: Format, Questions and Prep",
+                "url": "https://fonzi.ai/blog/anthropic-codesignal"
+            },
+            {
+                "kind": "web",
+                "title": "How to Ace Your Anthropic CodeSignal Assessment: A Step-by-Step Guide",
+                "url": "https://www.finalroundai.com/blog/how-to-ace-your-anthropic-code-signal-assessment-a-step-by-step-guide"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Question Bank",
+                "url": "https://www.1point3acres.com/interview/problems/company/anthropic"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Coding & System Design Interview Prep Guide",
+                "url": "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Questions (Updated 2026)",
+                "url": "https://prachub.com/companies/anthropic"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Prep Guide",
+                "url": "https://prachub.com/interview-prep/Qb1NwDk3hIoL"
+            },
+            {
+                "kind": "web",
+                "title": "Web Crawler System Design Interview: Frontier, Politeness, and Dedup",
+                "url": "https://prachub.com/resources/web-crawler-system-design"
+            },
+            {
+                "kind": "web",
+                "title": "Design a concurrent web crawler",
+                "url": "https://prachub.com/interview-questions/design-a-concurrent-web-crawler-2"
+            },
+            {
+                "kind": "web",
+                "title": "Design a concurrent web crawler",
+                "url": "https://prachub.com/interview-questions/design-a-concurrent-web-crawler-3"
+            },
+            {
+                "kind": "web",
+                "title": "I Compiled Anthropic Concurrency Interview Questions in 2026",
+                "url": "https://www.linkjob.ai/interview-questions/anthropic-concurrency-interview/"
+            },
+            {
+                "kind": "web",
+                "title": "Design a scalable web crawler",
+                "url": "https://prachub.com/interview-questions/design-a-scalable-web-crawler"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Experience (Software Engineer Role)",
+                "url": "https://www.teamblind.com/post/Anthropic-Interview-Experience-Software-Engineer-Role-e7QbATrh"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Phone Screen Interview: What Gets Tested and How to Pass \u00b7 SpaceComplexity",
+                "url": "https://spacecomplexity.ai/blog/anthropic-phone-screen-interview"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic codesignal interview gdclgwkl",
+                "url": "https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic pre screen coding round a52n538q",
+                "url": "https://www.teamblind.com/post/anthropic-pre-screen-coding-round-a52n538q"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic phone screen tfrn5jkm",
+                "url": "https://www.teamblind.com/post/anthropic-phone-screen-tfrn5jkm"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview experience software engineer role e7qbatrh",
+                "url": "https://www.teamblind.com/post/anthropic-interview-experience-software-engineer-role-e7qbatrh"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/search/Codesignal"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic codesignal experience aumkcovi",
+                "url": "https://www.teamblind.com/post/anthropic-codesignal-experience-aumkcovi"
+            },
+            {
+                "kind": "web",
+                "title": "GitHub - ryanhestin/anthropic-challenge: My rendition of the now infamous \"call stack sampler\" challenge from Anthropic featured in a recent viral video \u00b7 GitHub",
+                "url": "https://github.com/ryanhestin/anthropic-challenge"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Mock Coding Interview - Sampling Profiler - Lean Hire - YouTube",
+                "url": "https://www.youtube.com/watch?v=fjjbte2y0dE"
+            },
+            {
+                "kind": "web",
+                "title": "Convert stack samples to trace events",
+                "url": "https://prachub.com/coding-questions/convert-stack-samples-to-trace-events"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Coding & Algorithms Questions (Updated 2026)",
+                "url": "https://prachub.com/companies/anthropic/categories/coding-and-algorithms"
+            },
+            {
+                "kind": "web",
+                "title": "Convert stack samples to trace events",
+                "url": "https://prachub.com/interview-questions/convert-stack-samples-to-trace-events"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Coding Interview Questions, Follow-Ups, and Prep Guide",
+                "url": "https://extrabrain.app/interview-questions/anthropic-coding-interview-extrabrain/"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Coding Interview Questions: 2026 Question Bank",
+                "url": "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic AI Engineer Interview Questions & Answers - Page 2",
+                "url": "https://resumeinminutes.com/interview-questions/anthropic/ai-engineer/anthropic-interview-questions-page-2.html"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Interview Breakdown: How I Passed a \u201cSimple\u201d Stack Trace Question with Real-Time Support- Anthropic - VO support - personalized interview consulting",
+                "url": "https://csoahelp.com/2025/04/06/anthropic-interview-breakdown-how-i-passed-a-simple-stack-trace-question-with-real-time-support/"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Staff Software Engineer Interview Experience \u2014 A Surprise Extra Round, Then a Downlevel to Senior",
+                "url": "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Prep Guide",
+                "url": "https://prachub.com/interview-prep/JaRZkTqU0x9A"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Software Engineer Interview Questions (2026)",
+                "url": "https://offerflow.pro/interview-questions/software-engineer/at-anthropic"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic Coding Interview: 19 Real Questions (Sep 2026)",
+                "url": "https://aceoffer.app/interviews/anthropic/coding-questions"
+            },
+            {
+                "kind": "web",
+                "title": "How I Beat 2026 Anthropic Interview: My Process & Questions",
+                "url": "https://www.linkjob.ai/interview-questions/anthropic-interview-process/"
+            },
+            {
+                "kind": "web",
+                "title": "Find Duplicate Files",
+                "url": "https://prachub.com/coding-questions/find-duplicate-files"
+            },
+            {
+                "kind": "web",
+                "title": "Anthropic phone screen, File Dedupe question (Q2)",
+                "url": "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=8"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/company/Anthropic/posts?page=13"
+            },
+            {
+                "kind": "web",
+                "title": "Anyone interviewed there? How is it? Do they ask leetcode? This is for SWE role in AI",
+                "url": "https://www.teamblind.com/post/anthropic-interview-advice-854xygjz"
+            },
+            {
+                "kind": "web",
+                "title": "www.teamblind.com",
+                "url": "https://www.teamblind.com/company/Anthropic/posts?page=21"
+            },
+            {
+                "kind": "web",
+                "title": "failed interviews at openai anthropic feels bad but happy to answer questions y0715aza",
+                "url": "https://www.teamblind.com/post/failed-interviews-at-openai-anthropic-feels-bad-but-happy-to-answer-questions-y0715aza"
+            },
+            {
+                "kind": "web",
+                "title": "anthropic interview",
+                "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=11"
+            }
+        ],
+        "topic_weights": [
+            {
+                "progress": 0.084,
+                "topic": "Practical Coding",
+                "weight": 1.0,
+                "why": "Almost every reported question is a practical build. Examples are the in-memory DB, banking system, file storage, profiler trace events, dedup with streaming, durable LRU, and PR review. Several sources say 'no leetcode' in the OA."
+            },
+            {
+                "progress": 0.642,
+                "topic": "Arrays & Hashing",
+                "weight": 0.8,
+                "why": "Hash maps and sets underpin the KV-store OA, file dedup (group by size, then content hash), and the crawler's visited set."
+            },
+            {
+                "progress": 0.07,
+                "topic": "Graphs",
+                "weight": 0.65,
+                "why": "The web crawler is BFS over same-host URLs and is the top dataset problem. It was also reported in Sep 2025 screens and onsites."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Stack",
+                "weight": 0.55,
+                "why": "Both the stack-samples to trace-events profiler question and Exclusive Time of Functions (dataset) need call-stack reasoning and prefix comparison."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Linked List",
+                "weight": 0.5,
+                "why": "The LRU cache (hash map plus doubly linked list) is the base of a reported onsite question that is extended to memoization and crash durability."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Tries",
+                "weight": 0.3,
+                "why": "The in-memory DB has prefix-scan levels and a hashtag autocomplete title was reported. Evidence for a trie specifically is thin, so the weight is moderate."
+            },
+            {
+                "progress": 0.204,
+                "topic": "Binary Search",
+                "weight": 0.2,
+                "why": "Historical, timestamped lookups in the DB OA can use bisect. Otherwise reports say binary search is not asked."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Greedy",
+                "weight": 0.15,
+                "why": "The tokenizer question uses greedy longest-match, but it is a low-confidence report from aggregators only."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Math & Geometry",
+                "weight": 0.15,
+                "why": "Only the low-confidence 'fair coin from biased coin' phone-screen title points here."
+            },
+            {
+                "progress": 0.0,
+                "topic": "Heap / Priority Queue",
+                "weight": 0.1,
+                "why": "No reports. A candidate said to forget heaps for the OA."
+            },
+            {
+                "progress": 0.0,
+                "topic": "1-D Dynamic Programming",
+                "weight": 0.05,
+                "why": "No DP reported in any source."
+            }
+        ],
+        "updated": "2026-11-13T23:40:01",
+        "web_status": "ok \u2014 98 sources"
+    },
+    "daily_minutes": 60,
+    "demo": "Midway (simulated history)",
+    "due_reviews": [
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "https://leetcode.com/problems/top-k-frequent-elements/",
+            "mastery": 0.425,
+            "next_review": "2026-11-19",
+            "source": "roadmap",
+            "status": "solved",
+            "title": "Top K Frequent Elements",
+            "topic": "Arrays & Hashing"
+        },
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "https://leetcode.com/problems/time-based-key-value-store/",
+            "mastery": 0.425,
+            "next_review": "2026-11-21",
+            "source": "roadmap",
+            "status": "solved",
+            "title": "Time Based Key-Value Store",
+            "topic": "Binary Search"
+        },
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "https://leetcode.com/problems/clone-graph/",
+            "mastery": 0.25,
+            "next_review": "2026-11-25",
+            "source": "roadmap",
+            "status": "in_progress",
+            "title": "Clone Graph",
+            "topic": "Graphs"
+        },
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "",
+            "mastery": 0.5,
+            "next_review": "2026-11-25",
+            "source": "company",
+            "status": "solved",
+            "title": "In-memory database (multi-level OA)",
+            "topic": "Practical Coding"
+        },
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "",
+            "mastery": 0.425,
+            "next_review": "2026-11-23",
+            "source": "company",
+            "status": "solved",
+            "title": "File deduplication at scale",
+            "topic": "Practical Coding"
+        },
+        {
+            "difficulty": "Medium",
+            "due": true,
+            "link": "",
+            "mastery": 0.085,
+            "next_review": "2026-11-14",
+            "source": "company",
+            "status": "in_progress",
+            "title": "Banking system (multi-level OA)",
+            "topic": "Practical Coding"
+        }
+    ],
+    "initialized": true,
+    "provider": {
+        "name": "fake",
+        "web_search": true
+    },
+    "readiness": {
+        "overall": 18,
+        "problem_coverage": 20,
+        "topic_strength": 15,
+        "weak_spots": [
+            "Practical Coding",
+            "Graphs",
+            "Stack"
+        ]
+    },
+    "streak": 12,
+    "target": {
+        "company": "Anthropic",
+        "days_left": 30,
+        "interview_date": "2026-12-25"
+    },
+    "today": "2026-11-25",
+    "today_plan": {
+        "coach_note": "Graph week, day three. Clone Graph needs a second pass while yesterday's solution is still fresh, then Rotting Oranges adds multi-source BFS, the piece you need before the concurrent web crawler on Friday.",
+        "focus": "balanced",
+        "items": [
+            {
+                "difficulty": "Medium",
+                "estimated_minutes": 20,
+                "kind": "review",
+                "link": "https://leetcode.com/problems/clone-graph/",
+                "reason": "You read the solution yesterday. Re-derive it from a blank file.",
+                "source": "roadmap",
+                "status": "in_progress",
+                "title": "Clone Graph",
+                "topic": "Graphs"
+            },
+            {
+                "difficulty": "Medium",
+                "estimated_minutes": 25,
+                "kind": "new",
+                "link": "https://leetcode.com/problems/rotting-oranges/",
+                "reason": "Multi-source BFS with levels, the same frontier shape as a crawler.",
+                "source": "roadmap",
+                "status": "new",
+                "title": "Rotting Oranges",
+                "topic": "Graphs"
+            },
+            {
+                "difficulty": "Medium",
+                "estimated_minutes": 12,
+                "kind": "review",
+                "link": "https://leetcode.com/problems/top-k-frequent-elements/",
+                "reason": "Due today. Try bucket sort without the hint this time.",
+                "source": "roadmap",
+                "status": "solved",
+                "title": "Top K Frequent Elements",
+                "topic": "Arrays & Hashing"
+            },
+            {
+                "difficulty": "Medium",
+                "estimated_minutes": 15,
+                "kind": "review",
+                "link": "https://leetcode.com/problems/time-based-key-value-store/",
+                "reason": "The timestamp lookup is the core of the in-memory DB's history level.",
+                "source": "roadmap",
+                "status": "solved",
+                "title": "Time Based Key-Value Store",
+                "topic": "Binary Search"
+            }
+        ],
+        "minutes": 75,
+        "total_minutes": 72
+    },
+    "topics": [
+        {
+            "mastery": 0.642,
+            "solved": 7,
+            "topic": "Arrays & Hashing",
+            "total": 10
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Two Pointers",
+            "total": 5
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Sliding Window",
+            "total": 6
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Stack",
+            "total": 8
+        },
+        {
+            "mastery": 0.204,
+            "solved": 2,
+            "topic": "Binary Search",
+            "total": 7
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Linked List",
+            "total": 11
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Trees",
+            "total": 15
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Tries",
+            "total": 4
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Heap / Priority Queue",
+            "total": 7
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Backtracking",
+            "total": 9
+        },
+        {
+            "mastery": 0.07,
+            "solved": 1,
+            "topic": "Graphs",
+            "total": 15
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Advanced Graphs",
+            "total": 6
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "1-D Dynamic Programming",
+            "total": 12
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "2-D Dynamic Programming",
+            "total": 11
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Greedy",
+            "total": 8
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Intervals",
+            "total": 6
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Math & Geometry",
+            "total": 9
+        },
+        {
+            "mastery": 0.0,
+            "solved": 0,
+            "topic": "Bit Manipulation",
+            "total": 7
+        },
+        {
+            "mastery": 0.084,
+            "solved": 2,
+            "topic": "Practical Coding",
+            "total": 12
+        }
+    ],
+    "totals": {
+        "attempted": 14,
+        "solved": 12,
+        "total": 168
+    }
+}

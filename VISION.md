@@ -180,8 +180,8 @@ else.
 | Curriculum | ✅ Implemented (NeetCode 150, fixed) | `coach/roadmap.py`, `coach/data/` |
 | Scheduler | ✅ Implemented (Claude decides the daily plan) | `coach/llm.py` (`generate_plan`), `coach/coach.py` |
 | Memory | ✅ Implemented (auto-updated from NL feedback) | `coach/store.py`, `coach/llm.py` (`parse_feedback`), `coach/review.py` |
-| Coach | ⛔ Not in MVP | — |
-| Dashboard | 🟡 Minimal (`progress` command only) | `coach/cli.py` (`cmd_progress`) |
+| Coach | 🟡 Company targeting: interview-deadline campaigns, company intel, readiness | `coach/companies.py`, `coach/llm.py` (`research_company`, `build_company_intel`, `generate_campaign`) |
+| Dashboard | ✅ Local web dashboard + `progress` command | `coach/web.py`, `coach/static/` |
 
 The seams above are deliberate: mistake analysis, custom roadmaps, adaptive
 scheduling, and richer analytics can each slot into an existing module without a

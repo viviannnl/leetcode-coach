@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>LeetCode Coach</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Navigation"></aside>
+    <div class="main">
+      <header class="toolbar" id="toolbar"></header>
+      <div class="banner" id="banner" role="note" hidden></div>
+      <main class="work" id="app" aria-live="polite">
+        <!-- Skeleton shaped like the populated layout; replaced on first load. -->
+        <section class="col">
+          <div class="panel"><div class="skeleton sk-title"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
+          <div class="panel"><div class="skeleton sk-title"></div><div class="skeleton sk-block"></div></div>
+        </section>
+        <section class="col col--side">
+          <div class="panel"><div class="skeleton sk-title"></div><div class="skeleton sk-big"></div></div>
+          <div class="panel"><div class="skeleton sk-title"></div><div class="skeleton sk-block"></div></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
