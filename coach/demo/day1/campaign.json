@@ -1,311 +1,282 @@
 {
-  "generated": "2026-11-13T23:41:02",
-  "generated_for": "2026-11-13",
+  "generated": "2026-11-14T12:49:04",
+  "generated_for": "2026-11-14",
   "company": "Anthropic",
   "interview_date": "2026-12-25",
-  "summary": "Build hashing and stateful-API fundamentals first, then BFS/DFS before the concurrent web crawler, then linked lists and stacks before LRU caching and the sampling profiler. Practical multi-level builds are spread across the weeks and treated as full sessions, with the highest-weight Anthropic problems repeated as reviews. The final days before Dec 25 are consolidation only: timed redos of the signature problems and no new topics.",
+  "level": "mid",
+  "summary": "Anthropic's loop has no classic algorithms round. Prep time therefore goes only to practical coding (about 75%, matching its 0.48 combined round weight) and system design (about 25%). Weeks 1-3 cover the most-asked stateful 4-level OA builds and the design prerequisites (KV store, caching, rate limiting) before the inference-flavored designs. The middle weeks drill extensions (thread safety, persistence, TTL) as timed reviews, and the final week is pure consolidation with timed reruns of the highest-weight problems.",
   "weeks": [
     {
-      "start": "2026-11-13",
-      "end": "2026-11-15",
-      "theme": "Hashing foundations",
-      "goal": "Fluently group, dedupe and serialize data with hash maps, ending with Find Duplicate File in System solved cleanly.",
-      "focus_topics": [
-        "Arrays & Hashing",
-        "Canonical keys",
-        "String parsing"
-      ],
-      "problems": [
-        {
-          "title": "Two Sum",
-          "kind": "new"
-        },
-        {
-          "title": "Contains Duplicate",
-          "kind": "new"
-        },
-        {
-          "title": "Group Anagrams",
-          "kind": "new"
-        },
-        {
-          "title": "Encode and Decode Strings",
-          "kind": "new"
-        },
-        {
-          "title": "Find Duplicate File in System",
-          "kind": "new"
-        }
-      ]
-    },
-    {
-      "start": "2026-11-16",
-      "end": "2026-11-22",
-      "theme": "Stateful stores and file dedup",
-      "goal": "Build the in-memory database through all OA levels (including TTL and history) and design file dedup with size-then-hash streaming.",
+      "start": "2026-11-14",
+      "end": "2026-11-20",
+      "theme": "OA core: stateful systems + storage foundations",
+      "goal": "Build the KV database, banking and task-manager simulators through all 4 levels with passing tests, and sketch KV store and distributed cache designs end to end.",
       "focus_topics": [
         "Practical Coding",
-        "Arrays & Hashing",
-        "Binary Search on timestamps",
-        "File I/O and hashing"
+        "Design: Foundations",
+        "Design: Storage & Caching"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 300
+        },
+        {
+          "track": "system_design",
+          "minutes": 120
+        }
       ],
       "problems": [
         {
-          "title": "Valid Anagram",
+          "title": "In-Memory Key-Value Database (4-level OA)",
           "kind": "new"
         },
         {
-          "title": "Top K Frequent Elements",
+          "title": "Banking System with Transaction Log (4-level OA)",
           "kind": "new"
         },
         {
-          "title": "Binary Search",
+          "title": "Task Management System with Dependencies (OA)",
           "kind": "new"
         },
         {
-          "title": "Time Based Key-Value Store",
+          "title": "Design a Key-Value Store",
           "kind": "new"
         },
         {
-          "title": "In-memory database (multi-level OA)",
+          "title": "Design a Distributed Cache",
           "kind": "new"
-        },
-        {
-          "title": "File deduplication at scale",
-          "kind": "new"
-        },
-        {
-          "title": "Group Anagrams",
-          "kind": "review"
         }
       ]
     },
     {
-      "start": "2026-11-23",
-      "end": "2026-11-29",
-      "theme": "BFS/DFS to concurrent crawler",
-      "goal": "Master graph traversal with visited sets, then implement Web Crawler Multithreaded with thread-safe state and clean termination.",
-      "focus_topics": [
-        "Graphs",
-        "BFS/DFS",
-        "Concurrency (threads, locks, executors)",
-        "Practical Coding"
-      ],
-      "problems": [
-        {
-          "title": "Number of Islands",
-          "kind": "new"
-        },
-        {
-          "title": "Clone Graph",
-          "kind": "new"
-        },
-        {
-          "title": "Rotting Oranges",
-          "kind": "new"
-        },
-        {
-          "title": "Course Schedule",
-          "kind": "new"
-        },
-        {
-          "title": "Web Crawler",
-          "kind": "new"
-        },
-        {
-          "title": "Web Crawler Multithreaded",
-          "kind": "new"
-        },
-        {
-          "title": "Banking system (multi-level OA)",
-          "kind": "new"
-        },
-        {
-          "title": "Find Duplicate File in System",
-          "kind": "review"
-        }
-      ]
-    },
-    {
-      "start": "2026-11-30",
-      "end": "2026-12-06",
-      "theme": "Linked lists, stacks, LRU and profiler",
-      "goal": "Implement an O(1) LRU Cache from scratch and convert stack samples into correct trace events, including recursion and same-timestamp edge cases.",
-      "focus_topics": [
-        "Linked List",
-        "Stack",
-        "Caching",
-        "Practical Coding"
-      ],
-      "problems": [
-        {
-          "title": "Reverse Linked List",
-          "kind": "new"
-        },
-        {
-          "title": "Merge Two Sorted Lists",
-          "kind": "new"
-        },
-        {
-          "title": "Linked List Cycle",
-          "kind": "new"
-        },
-        {
-          "title": "LRU Cache",
-          "kind": "new"
-        },
-        {
-          "title": "Valid Parentheses",
-          "kind": "new"
-        },
-        {
-          "title": "Min Stack",
-          "kind": "new"
-        },
-        {
-          "title": "Exclusive Time of Functions",
-          "kind": "new"
-        },
-        {
-          "title": "Stack samples to trace events (sampling profiler)",
-          "kind": "new"
-        },
-        {
-          "title": "In-memory database (multi-level OA)",
-          "kind": "review"
-        }
-      ]
-    },
-    {
-      "start": "2026-12-07",
-      "end": "2026-12-13",
-      "theme": "Durability, tries and tokenizers",
-      "goal": "Make an LRU memoize decorator crash-durable with a WAL, and use tries for the tokenizer and autocomplete.",
+      "start": "2026-11-21",
+      "end": "2026-11-27",
+      "theme": "Concurrency, persistence + LLM inference",
+      "goal": "Ship a thread-safe, crash-recoverable LRU decorator and two more OA-style simulators, and present a batching LLM inference API design with rate limiting.",
       "focus_topics": [
         "Practical Coding",
-        "Durability / write-ahead log",
-        "Tries",
-        "Multi-level OA"
+        "Concurrency & persistence",
+        "Design: Infrastructure & ML",
+        "Design: Foundations"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 300
+        },
+        {
+          "track": "system_design",
+          "minutes": 120
+        }
       ],
       "problems": [
         {
-          "title": "LRU memoization decorator, crash-durable",
+          "title": "LRU Cache Decorator with Persistence",
           "kind": "new"
         },
         {
-          "title": "Implement Trie Prefix Tree",
+          "title": "File System Simulator / Package Manager / Text Editor (OA themes)",
           "kind": "new"
         },
         {
-          "title": "Greedy tokenizer",
+          "title": "Profiler: Stack Samples to Function Events",
           "kind": "new"
         },
         {
-          "title": "Design Search Autocomplete System",
-          "kind": "new"
-        },
-        {
-          "title": "Cloud file storage / file cache (multi-level OA)",
-          "kind": "new"
-        },
-        {
-          "title": "LRU Cache",
+          "title": "Banking System with Transaction Log (4-level OA)",
           "kind": "review"
         },
         {
-          "title": "Web Crawler Multithreaded",
-          "kind": "review"
+          "title": "Design a Rate Limiter",
+          "kind": "new"
+        },
+        {
+          "title": "Design an LLM Inference API",
+          "kind": "new"
         }
       ]
     },
     {
-      "start": "2026-12-14",
-      "end": "2026-12-20",
-      "theme": "Breadth: PR review, sampling, distributed",
-      "goal": "Run one full PR-review session and clear the remaining lower-weight practicals, while re-solving dedup and the stack problems under time pressure.",
+      "start": "2026-11-28",
+      "end": "2026-12-04",
+      "theme": "Distributed coding + messaging/crawler design",
+      "goal": "Solve distributed mode/median with minimal communication, rerun key OA problems faster, and design chat and large-scale crawler systems.",
       "focus_topics": [
-        "PR review in unfamiliar code",
-        "Rejection sampling",
-        "Distributed aggregation",
-        "Agent loops",
-        "Stateful design"
+        "Practical Coding",
+        "Design: Messaging & Async",
+        "Design: Storage & Caching",
+        "Graphs (topological ordering, BFS in practical context)"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 300
+        },
+        {
+          "track": "system_design",
+          "minutes": 120
+        }
       ],
       "problems": [
         {
-          "title": "PR review and improvement round",
+          "title": "Distributed Mode and Median",
           "kind": "new"
         },
         {
-          "title": "Global mode across distributed shards",
-          "kind": "new"
-        },
-        {
-          "title": "Fair coin from a biased coin",
-          "kind": "new"
-        },
-        {
-          "title": "Implement Rand10() Using Rand7()",
-          "kind": "new"
-        },
-        {
-          "title": "Stock-price agent with tool-calling loop",
-          "kind": "new"
-        },
-        {
-          "title": "Design Twitter",
-          "kind": "new"
-        },
-        {
-          "title": "Image processing with PIL",
-          "kind": "new"
-        },
-        {
-          "title": "File deduplication at scale",
+          "title": "LRU Cache Decorator with Persistence",
           "kind": "review"
         },
         {
-          "title": "Exclusive Time of Functions",
+          "title": "Task Management System with Dependencies (OA)",
           "kind": "review"
+        },
+        {
+          "title": "In-Memory Key-Value Database (4-level OA)",
+          "kind": "review"
+        },
+        {
+          "title": "Design a Chat System",
+          "kind": "new"
+        },
+        {
+          "title": "Design a Web Crawler at Scale",
+          "kind": "new"
         }
       ]
     },
     {
-      "start": "2026-12-21",
+      "start": "2026-12-05",
+      "end": "2026-12-11",
+      "theme": "Timed OA reps + infra design",
+      "goal": "Finish full 4-level OA reruns within 90 minutes, and design monitoring and model distribution systems with clear trade-offs.",
+      "focus_topics": [
+        "Practical Coding",
+        "Design: Infrastructure & ML"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 300
+        },
+        {
+          "track": "system_design",
+          "minutes": 120
+        }
+      ],
+      "problems": [
+        {
+          "title": "Banking System with Transaction Log (4-level OA)",
+          "kind": "review"
+        },
+        {
+          "title": "File System Simulator / Package Manager / Text Editor (OA themes)",
+          "kind": "review"
+        },
+        {
+          "title": "Profiler: Stack Samples to Function Events",
+          "kind": "review"
+        },
+        {
+          "title": "LRU Cache Decorator with Persistence",
+          "kind": "review"
+        },
+        {
+          "title": "Design a Metrics and Monitoring System",
+          "kind": "new"
+        },
+        {
+          "title": "Model / File Distribution to Thousands of Machines",
+          "kind": "new"
+        }
+      ]
+    },
+    {
+      "start": "2026-12-12",
+      "end": "2026-12-18",
+      "theme": "Mock rounds + last new design",
+      "goal": "Run interview-length mocks of the top practical problems cleanly, and deliver the LLM inference design in 45 minutes plus one search-at-scale design.",
+      "focus_topics": [
+        "Practical Coding",
+        "Design: Infrastructure & ML",
+        "Design: Storage & Caching"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 300
+        },
+        {
+          "track": "system_design",
+          "minutes": 120
+        }
+      ],
+      "problems": [
+        {
+          "title": "In-Memory Key-Value Database (4-level OA)",
+          "kind": "review"
+        },
+        {
+          "title": "Task Management System with Dependencies (OA)",
+          "kind": "review"
+        },
+        {
+          "title": "Distributed Mode and Median",
+          "kind": "review"
+        },
+        {
+          "title": "Banking System with Transaction Log (4-level OA)",
+          "kind": "review"
+        },
+        {
+          "title": "Design an LLM Inference API",
+          "kind": "review"
+        },
+        {
+          "title": "Distributed Search over 1B Documents",
+          "kind": "new"
+        }
+      ]
+    },
+    {
+      "start": "2026-12-19",
       "end": "2026-12-25",
-      "theme": "Consolidation and timed mocks",
-      "goal": "Re-solve the top signature problems timed, narrating scale follow-ups aloud, and keep the day before the interview light.",
+      "theme": "Consolidation and timed practice",
+      "goal": "Hit timed, bug-free reruns of the three highest-weight practical problems and crisp 45-minute design walkthroughs, with no new topics.",
       "focus_topics": [
-        "Timed practice",
-        "Scale and concurrency follow-ups",
-        "Practical Coding"
+        "Practical Coding",
+        "Design: Infrastructure & ML",
+        "Design: Storage & Caching"
+      ],
+      "allocation": [
+        {
+          "track": "practical",
+          "minutes": 270
+        },
+        {
+          "track": "system_design",
+          "minutes": 90
+        }
       ],
       "problems": [
         {
-          "title": "In-memory database (multi-level OA)",
+          "title": "In-Memory Key-Value Database (4-level OA)",
           "kind": "review"
         },
         {
-          "title": "Web Crawler Multithreaded",
+          "title": "LRU Cache Decorator with Persistence",
           "kind": "review"
         },
         {
-          "title": "File deduplication at scale",
+          "title": "Banking System with Transaction Log (4-level OA)",
           "kind": "review"
         },
         {
-          "title": "Stack samples to trace events (sampling profiler)",
+          "title": "Design an LLM Inference API",
           "kind": "review"
         },
         {
-          "title": "LRU memoization decorator, crash-durable",
-          "kind": "review"
-        },
-        {
-          "title": "Find Duplicate File in System",
-          "kind": "review"
-        },
-        {
-          "title": "LRU Cache",
+          "title": "Design a Distributed Cache",
           "kind": "review"
         }
       ]

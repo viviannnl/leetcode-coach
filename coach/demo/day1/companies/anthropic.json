@@ -1,46 +1,25 @@
 {
   "advice": [
-    "Treat the CodeSignal OA as a speed test. Code fast against the exact public API, get each level's tests passing, and expect later levels to force a refactor. Polish at the end.",
-    "Edge cases still matter. A candidate scoring about 770/800 was rejected, so check TTL boundaries, missing keys, and same-timestamp ordering.",
-    "Drill the small known question bank: in-memory DB, banking system, cloud file storage, web crawler (then concurrent), stack samples to trace events, file dedup, and the LRU/memoize cache made crash-durable.",
-    "Know your language's standard library cold. In Python that means threading, concurrent.futures, asyncio, hashlib, os/pathlib and collections. Practise thread-safe visited sets and clean termination.",
-    "After a working first version, expect follow-ups on concurrency, data larger than memory, real-time or streaming input, and persistence (WAL or disk). Rehearse how you'd discuss each.",
-    "Prepare seriously for the culture/values round: a specific 'why Anthropic' with a real example, plus your views on AI safety. Reports call it the hardest round."
+    "Practice timed 90-minute, 4-level simulators (in-memory KV DB with TTL and scans, bank with transaction log, task manager with dependencies) in Python with only the standard library. Minimize bugs, since every test at a level must pass to move on.",
+    "Master the web crawler end to end: BFS restricted to the same host, then thread-pool or async workers with a thread-safe visited set and clean termination. Don't announce that you've memorized it; that has led to an extra round and a downlevel.",
+    "For any cache or store problem, expect follow-ups on thread safety, error handling and persistence or crash recovery (e.g. a write-ahead log). Keep the code running at each step rather than over-engineering serialization.",
+    "Prepare a real 'Why Anthropic', read the culture documents the recruiter sends, and be ready to give an honest critique of Anthropic's direction and to reason through ethical dilemmas several follow-ups deep.",
+    "For system design, treat LLM prompts as classic infra: batching up to the GPU limit, queues, routing, backpressure and overload, observability. Narrate trade-offs collaboratively."
   ],
   "company": "Anthropic",
   "dataset_count": 4,
-  "interview_format": "Typical 2025\u20132026 pipeline: a 90-min CodeSignal OA (one progressive 4-level project; a 6-part variant was reported in June 2026), a 30-min recruiter call, then a 45\u201360 min live coding screen on CodeSignal, Replit or Colab. That screen is one problem with escalating follow-ups. The virtual onsite has 4\u20135 rounds of about 1 hour each: 1\u20132 coding, 1\u20132 system design, hiring manager, and culture/values. Some 2026 loops add a PR-review round where Claude is available. The focus is practical engineering rather than classic DS&A: stateful APIs that evolve, hashing and file I/O, BFS plus concurrency, caching and durability, and scale follow-ups.",
+  "interview_format": "Anthropic runs one generalist SWE loop. Public reports are rarely labeled mid-level, so level-specific details are low confidence. The usual sequence is a recruiter screen, then a 90-minute CodeSignal 'Industry Coding Assessment' (one stateful system built up over 4 levels, usually in Python), sometimes followed by a ~60-minute live practical coding screen, then a hiring manager screen. The virtual onsite on Google Meet has 4\u20135 rounds of about 55 minutes: practical coding, system design (often infra/inference flavored), project deep dive, a culture/values round with deep ethical follow-ups, and a hiring manager behavioral round. Coding is practical rather than classic LeetCode and checks fast, correct, extensible code, concurrency and persistence; team matching happens after the onsite.",
+  "level": "mid",
   "problems": [
     {
-      "description": "Build a key/field store class in levels: SET/GET/DELETE, then filtered/prefix scans, then TTL with timestamps, then history lookups or backup/restore.",
+      "concepts": [],
+      "description": "Crawl all same-host URLs from a start URL using multiple concurrent workers.",
       "difficulty": "Medium",
-      "evidence": "The most-reported CodeSignal OA problem, with versions seen across 2025\u20132026. It is graded by tests and later levels force refactors.",
+      "evidence": "Dataset frequency 100% (6+ months ago). Web reports call it the most reported coding question (AceOffer counts 60\u00d7, last seen July 2026), asked single-threaded then concurrent.",
       "evidence_urls": [
-        "https://igotanoffer.com/en/advice/anthropic-interview-questions",
-        "https://www.1point3acres.com/interview/problems/a3816a9d-04af-5a4a-8363-20be75018fd2",
-        "https://www.fastprep.io/problems/anthropic-in-memory-database-historical-lookup",
-        "https://www.fastprep.io/problems/anthropic-in-memory-database-backup-restore",
-        "https://www.glassdoor.com/Interview/Design-an-in-memory-database-and-a-function-to-do-odd-CRUD-operations-Written-as-poorly-as-possible-QTN_6453458.htm"
-      ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "In-memory database (multi-level OA)",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.95
-    },
-    {
-      "description": "Crawl all same-hostname URLs concurrently via htmlParser.getUrls, using thread-safe visited state and clean termination.",
-      "difficulty": "Medium",
-      "evidence": "Dataset frequency 100% (6+ months ago). Web reports show the crawler going from single-threaded to concurrent in a Sep 2025 live screen and a Sep 2025 Staff onsite. Most of the round is concurrency: threads vs processes vs async, and multi-machine scaling.",
-      "evidence_urls": [
-        "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx",
-        "https://www.teamblind.com/post/anthropic-phone-screen-tfrn5jkm",
-        "https://www.1point3acres.com/interview/problems/company/anthropic",
         "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad",
-        "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
+        "https://aceoffer.app/interviews/anthropic/coding-questions",
+        "https://prachub.com/companies/anthropic"
       ],
       "from_dataset": true,
       "from_web": true,
@@ -49,72 +28,35 @@
       "title": "Web Crawler Multithreaded",
       "topic": "Graphs",
       "url": "https://leetcode.com/problems/web-crawler-multithreaded",
-      "weight": 0.9
+      "weight": 1.0
     },
     {
-      "description": "Find duplicate files on disk by size, then content hash with streamed reads. Follow-ups: I/O-bound vs CPU-bound work, more files than memory, real-time detection as files arrive.",
+      "concepts": [],
+      "description": "Build SET/GET/DELETE, then filtered/prefix scans, then TTL with timestamps, then file compression or backup, passing every test at each level.",
       "difficulty": "Medium",
-      "evidence": "Reported in a Sep 2025 phone screen (Replit), a Mar 2026 onsite, and a late-2026 CodeSignal screen (45 min, no helper code). LinkJob says it was replaced by LRU after Sep 2025, but other sources still report it in late 2026.",
+      "evidence": "Most cited CodeSignal OA theme in 2026.",
       "evidence_urls": [
-        "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
-        "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470",
-        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read",
-        "https://aceoffer.app/interviews/anthropic/coding-questions",
-        "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/"
+        "https://igotanoffer.com/en/advice/anthropic-interview-questions",
+        "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide",
+        "https://www.hellointerview.com/guides/anthropic/swe"
       ],
       "from_dataset": false,
       "from_web": true,
       "in_roadmap": false,
       "kind": "practical",
-      "title": "File deduplication at scale",
+      "title": "In-Memory Key-Value Database (4-level OA)",
       "topic": "Practical Coding",
       "url": "",
-      "weight": 0.9
+      "weight": 0.95
     },
     {
-      "description": "Group files with identical content, given directory/content strings.",
+      "concepts": [],
+      "description": "BFS/DFS over links, restricted to the start URL's hostname.",
       "difficulty": "Medium",
-      "evidence": "Dataset frequency 87.5% (6+ months ago). It is the base of the file-dedup question reported in Sep 2025, Mar 2026 and late 2026 screens and onsites. AceOffer calls dedup the most reported question (low confidence).",
+      "evidence": "Dataset frequency 75%; this is the single-threaded first part of the most reported onsite question (Mar\u2013Jul 2026).",
       "evidence_urls": [
-        "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470",
-        "https://aceoffer.app/interviews/anthropic/coding-questions",
-        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
-      ],
-      "from_dataset": true,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "leetcode",
-      "title": "Find Duplicate File in System",
-      "topic": "Arrays & Hashing",
-      "url": "https://leetcode.com/problems/find-duplicate-file-in-system",
-      "weight": 0.85
-    },
-    {
-      "description": "Convert timestamped call-stack samples into ordered start/end events by diffing consecutive stacks on common prefix. Handle recursion and same-timestamp ordering. Follow-up: only emit frames present for at least N consecutive samples.",
-      "difficulty": "Medium",
-      "evidence": "Seen in a Feb 2026 phone screen, the viral Dec 2025 'leaked' video (C++ starter code), and a Jul 2025 PracHub entry.",
-      "evidence_urls": [
-        "https://leetcode.com/discuss/post/7559983/",
-        "https://www.teamblind.com/post/leaked-anthropic-interview-xxu4aoca",
-        "https://github.com/ryanhestin/anthropic-challenge",
-        "https://prachub.com/coding-questions/convert-stack-samples-to-trace-events"
-      ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Stack samples to trace events (sampling profiler)",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.85
-    },
-    {
-      "description": "BFS/DFS crawl of all URLs under the start URL's hostname using htmlParser.getUrls.",
-      "difficulty": "Medium",
-      "evidence": "Dataset frequency 75% (6+ months ago). It is the single-threaded first part of the reported crawler question (Sep 2025).",
-      "evidence_urls": [
-        "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx",
-        "https://www.1point3acres.com/interview/problems/company/anthropic"
+        "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad",
+        "https://aceoffer.app/interviews/anthropic/coding-questions"
       ],
       "from_dataset": true,
       "from_web": true,
@@ -123,16 +65,44 @@
       "title": "Web Crawler",
       "topic": "Graphs",
       "url": "https://leetcode.com/problems/web-crawler",
-      "weight": 0.8
+      "weight": 0.9
     },
     {
-      "description": "Implement an O(1) get/put LRU cache with a hash map and doubly linked list.",
-      "difficulty": "Medium",
-      "evidence": "It is the base of the reported LRU/memoization question: an added Sep 2025 onsite round, and AceOffer reports 12 instances, last seen Jul 2026.",
+      "concepts": [
+        "dynamic batching",
+        "request queuing",
+        "latency vs throughput",
+        "backpressure / overload shedding",
+        "routing across GPUs",
+        "streaming responses",
+        "rate limiting"
+      ],
+      "description": "Batch synchronous user requests onto a GPU that takes up to 100 inputs per batch; extends to end-to-end LLM batching, token generation at 100k RPS, and developer APIs.",
+      "difficulty": "Hard",
+      "evidence": "Most frequently reported design prompt (about 2 weeks ago; Mar 2026 onsite 'batch GPU requests'); token generation at 100k RPS about 8 months ago.",
       "evidence_urls": [
+        "https://www.tryexponent.com/questions?company=anthropic&type=system-design",
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite",
+        "https://www.aced.io/blog/anthropic-system-design-interview"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design an LLM Inference API",
+      "topic": "Design: Infrastructure & ML",
+      "url": "",
+      "weight": 0.9
+    },
+    {
+      "concepts": [],
+      "description": "O(1) get/put LRU cache; Anthropic extends it to a decorator, thread safety and persistence.",
+      "difficulty": "Medium",
+      "evidence": "Phone screen in Mar 2026 asked a functools.lru_cache-style LRU with crash recovery; a Staff variant asked to fix and persist one.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite",
         "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
-        "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/",
-        "https://aceoffer.app/interviews/anthropic/coding-questions"
+        "https://www.interviewquery.com/guides/anthropic-software-engineer"
       ],
       "from_dataset": false,
       "from_web": true,
@@ -141,142 +111,303 @@
       "title": "LRU Cache",
       "topic": "Linked List",
       "url": "https://leetcode.com/problems/lru-cache",
-      "weight": 0.75
+      "weight": 0.8
     },
     {
-      "description": "Extend a given Python LRU/memoize decorator, including canonical cache keys from args and kwargs. Then make it survive a crash with no data loss using disk persistence or a write-ahead log.",
-      "difficulty": "Hard",
-      "evidence": "Reported in an added Sep 2025 Staff onsite round. LinkJob says it replaced dedup after Sep 2025, and AceOffer reports 12 instances, last seen Jul 2026.",
+      "concepts": [],
+      "description": "In-memory bank supporting deposits, transfers and other transaction types plus a queryable transaction log, extended across levels.",
+      "difficulty": "Medium",
+      "evidence": "Reported about 1 year and about 6 months ago (Senior); loosely LC 2043.",
       "evidence_urls": [
-        "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
-        "https://www.linkjob.ai/interview-questions/anthropic-coding-interview/",
-        "https://aceoffer.app/interviews/anthropic/coding-questions"
+        "https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm",
+        "https://interviewing.io/anthropic-interview-questions"
       ],
       "from_dataset": false,
       "from_web": true,
       "in_roadmap": false,
       "kind": "practical",
-      "title": "LRU memoization decorator, crash-durable",
+      "title": "Banking System with Transaction Log (4-level OA)",
+      "topic": "Practical Coding",
+      "url": "",
+      "weight": 0.8
+    },
+    {
+      "concepts": [],
+      "description": "Implement a functools.lru_cache-style decorator (hashable key from *args/**kwargs), add thread safety, then recover state after a crash via a write-ahead log or serialization.",
+      "difficulty": "Hard",
+      "evidence": "Mar 2026 phone screen; Staff variant asked to fix a given implementation and make it persistent.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite",
+        "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": false,
+      "kind": "practical",
+      "title": "LRU Cache Decorator with Persistence",
       "topic": "Practical Coding",
       "url": "",
       "weight": 0.75
     },
     {
-      "description": "Implement core bank logic in levels: accounts, deposits and transfers, transaction logs, and later features such as rankings or scheduled payments.",
+      "concepts": [],
+      "description": "Stateful task manager: add/update tasks, then dependencies and ordering (topological sort), then further levels.",
       "difficulty": "Medium",
-      "evidence": "A CodeSignal OA variant reported on Blind (undated) and on NodeFlair.",
+      "evidence": "2026 OA report.",
       "evidence_urls": [
-        "https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl",
-        "https://nodeflair.com/companies/anthropic/interviews/senior-software-engineer-l86upq"
+        "https://www.interviewquery.com/guides/anthropic-software-engineer",
+        "https://trueinterview.io/study/anthropic-software-engineer-interview-process"
       ],
       "from_dataset": false,
       "from_web": true,
       "in_roadmap": false,
       "kind": "practical",
-      "title": "Banking system (multi-level OA)",
+      "title": "Task Management System with Dependencies (OA)",
       "topic": "Practical Coding",
       "url": "",
       "weight": 0.7
     },
     {
-      "description": "Compute each function's exclusive run time from start/end logs using a call stack.",
+      "concepts": [],
+      "description": "Group files by content to find duplicates; expect scale follow-ups (hash by size first, then chunked hashing).",
       "difficulty": "Medium",
-      "evidence": "Dataset frequency 75% (6+ months ago). The web report calls it related to the profiler stack-samples to trace-events question, working in the opposite direction.",
+      "evidence": "Dataset frequency 87.5% (6+ months ago); a file deduplication question was reported in 2026 (Staff).",
       "evidence_urls": [
-        "https://leetcode.com/discuss/post/7559983/",
-        "https://prachub.com/coding-questions/convert-stack-samples-to-trace-events"
+        "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior",
+        "https://aceoffer.app/interviews/anthropic/coding-questions"
       ],
       "from_dataset": true,
       "from_web": true,
       "in_roadmap": false,
       "kind": "leetcode",
-      "title": "Exclusive Time of Functions",
-      "topic": "Stack",
-      "url": "https://leetcode.com/problems/exclusive-time-of-functions",
+      "title": "Find Duplicate File in System",
+      "topic": "Arrays & Hashing",
+      "url": "https://leetcode.com/problems/find-duplicate-file-in-system",
       "weight": 0.65
     },
     {
-      "description": "Simulate a cloud file storage service (add, get, delete and list files, users and quotas) using only the standard library, built up in levels.",
+      "concepts": [],
+      "description": "Process function start/end logs with a stack to compute exclusive time.",
       "difficulty": "Medium",
-      "evidence": "OA variant. AceOffer counts 3 reports, the last in July 2026 (low confidence). Also listed by IGotAnOffer.",
+      "evidence": "Dataset frequency 75% (6+ months ago). Closely related to the reported profiler question that turns sampled call stacks into start/end events.",
+      "evidence_urls": [],
+      "from_dataset": true,
+      "from_web": false,
+      "in_roadmap": false,
+      "kind": "leetcode",
+      "title": "Exclusive Time of Functions",
+      "topic": "Stack",
+      "url": "https://leetcode.com/problems/exclusive-time-of-functions",
+      "weight": 0.6
+    },
+    {
+      "concepts": [
+        "websockets / streaming",
+        "message storage",
+        "conversation history",
+        "fan-out",
+        "scaling sessions"
+      ],
+      "description": "Chat app / Claude chat service, including messaging at 100M daily active users.",
+      "difficulty": "Hard",
+      "evidence": "Glassdoor system design screen Jul 2026; Claude chat service and 100M-DAU messaging prompts in 2026.",
       "evidence_urls": [
-        "https://aceoffer.app/interviews/anthropic/coding-questions",
+        "https://www.glassdoor.co.uk/Interview/Anthropic-Interview-Questions-E8109027.htm",
+        "https://prachub.com/companies/anthropic",
         "https://igotanoffer.com/en/advice/anthropic-interview-questions"
       ],
       "from_dataset": false,
       "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Cloud file storage / file cache (multi-level OA)",
-      "topic": "Practical Coding",
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design a Chat System",
+      "topic": "Design: Messaging & Async",
       "url": "",
-      "weight": 0.65
+      "weight": 0.6
     },
     {
-      "description": "Given four pull requests in an unfamiliar TypeScript repo, with Claude available, pick one, improve it and push an update. Variants start from buggy code.",
+      "concepts": [],
+      "description": "Timestamped KV store with binary-search lookup.",
       "difficulty": "Medium",
-      "evidence": "New 2026 onsite format based on 2 candidate reports (Apr\u2013Jun 2026). Medium-low confidence.",
+      "evidence": "The report names LC 981 as the loose equivalent of the OA in-memory KV database with TTL timestamps (2026).",
       "evidence_urls": [
-        "https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce"
+        "https://igotanoffer.com/en/advice/anthropic-interview-questions",
+        "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide"
       ],
       "from_dataset": false,
       "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "PR review and improvement round",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.5
-    },
-    {
-      "description": "Store values with timestamps and return the latest value at or before a given time.",
-      "difficulty": "Medium",
-      "evidence": "Related practice: directly trains the TTL and historical-lookup levels of the in-memory DB OA.",
-      "evidence_urls": [],
-      "from_dataset": false,
-      "from_web": false,
       "in_roadmap": true,
       "kind": "leetcode",
       "title": "Time Based Key-Value Store",
       "topic": "Binary Search",
       "url": "https://leetcode.com/problems/time-based-key-value-store",
-      "weight": 0.5
+      "weight": 0.55
     },
     {
-      "description": "Convert text into token IDs from a vocabulary dict using greedy longest match, including unknown characters.",
+      "concepts": [],
+      "description": "Same 4-level pattern for other stateful simulators: file system ops, package/build dependency resolution, text editor with undo.",
       "difficulty": "Medium",
-      "evidence": "Undated and reported only by aggregators, so low confidence.",
+      "evidence": "Aggregated 2026 OA themes (medium\u2013low confidence).",
       "evidence_urls": [
-        "https://aceoffer.app/interviews/anthropic/coding-questions",
-        "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad"
+        "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide",
+        "https://trueinterview.io/study/anthropic-software-engineer-interview-process"
       ],
       "from_dataset": false,
       "from_web": true,
       "in_roadmap": false,
       "kind": "practical",
-      "title": "Greedy tokenizer",
+      "title": "File System Simulator / Package Manager / Text Editor (OA themes)",
       "topic": "Practical Coding",
+      "url": "",
+      "weight": 0.5
+    },
+    {
+      "concepts": [
+        "partitioning",
+        "replication",
+        "consistency",
+        "durability / WAL",
+        "compaction"
+      ],
+      "description": "Distributed key-value store design.",
+      "difficulty": "Medium",
+      "evidence": "Exponent lists a key-value store prompt (7\u20138 months ago / about 2 weeks ago).",
+      "evidence_urls": [
+        "https://www.tryexponent.com/questions?company=anthropic&type=system-design"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design a Key-Value Store",
+      "topic": "Design: Foundations",
+      "url": "",
+      "weight": 0.5
+    },
+    {
+      "concepts": [],
+      "description": "Detect cycles in a dependency graph.",
+      "difficulty": "Medium",
+      "evidence": "The report maps the OA task manager with dependencies to topological sort (LC 207/210), 2026.",
+      "evidence_urls": [
+        "https://www.interviewquery.com/guides/anthropic-software-engineer"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "leetcode",
+      "title": "Course Schedule",
+      "topic": "Graphs",
+      "url": "https://leetcode.com/problems/course-schedule",
+      "weight": 0.45
+    },
+    {
+      "concepts": [],
+      "description": "Return a valid topological ordering of dependent tasks.",
+      "difficulty": "Medium",
+      "evidence": "The report maps the OA task manager with dependencies to LC 207/210 topological sort (2026).",
+      "evidence_urls": [
+        "https://www.interviewquery.com/guides/anthropic-software-engineer"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "leetcode",
+      "title": "Course Schedule II",
+      "topic": "Graphs",
+      "url": "https://leetcode.com/problems/course-schedule-ii",
+      "weight": 0.45
+    },
+    {
+      "concepts": [],
+      "description": "Convert periodic sampled call stacks into function start/end events by diffing consecutive stacks, handling recursion and limited history.",
+      "difficulty": "Medium",
+      "evidence": "Mar 2026 onsite (infra-leaning role).",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": false,
+      "kind": "practical",
+      "title": "Profiler: Stack Samples to Function Events",
+      "topic": "Practical Coding",
+      "url": "",
+      "weight": 0.45
+    },
+    {
+      "concepts": [
+        "eviction policy",
+        "consistent hashing",
+        "cache invalidation",
+        "hot keys"
+      ],
+      "description": "File cache system design.",
+      "difficulty": "Medium",
+      "evidence": "Exponent lists a file cache system prompt.",
+      "evidence_urls": [
+        "https://www.tryexponent.com/questions?company=anthropic&type=system-design"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design a Distributed Cache",
+      "topic": "Design: Storage & Caching",
+      "url": "",
+      "weight": 0.45
+    },
+    {
+      "concepts": [
+        "URL frontier",
+        "politeness / rate limiting",
+        "dedup",
+        "worker pools",
+        "fault tolerance"
+      ],
+      "description": "Distributed web crawler.",
+      "difficulty": "Medium",
+      "evidence": "Exponent lists a web crawler design prompt; the crawler also dominates coding.",
+      "evidence_urls": [
+        "https://www.tryexponent.com/questions?company=anthropic&type=system-design"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design a Web Crawler at Scale",
+      "topic": "Design: Storage & Caching",
+      "url": "",
+      "weight": 0.45
+    },
+    {
+      "concepts": [
+        "ingestion pipeline",
+        "time-series storage",
+        "aggregation",
+        "sampling",
+        "alerting"
+      ],
+      "description": "Telemetry ingestion and querying design.",
+      "difficulty": "Hard",
+      "evidence": "Telemetry design tech screen reported in 2026.",
+      "evidence_urls": [
+        "https://prachub.com/companies/anthropic"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": true,
+      "kind": "design",
+      "title": "Design a Metrics and Monitoring System",
+      "topic": "Design: Infrastructure & ML",
       "url": "",
       "weight": 0.35
     },
     {
-      "description": "Group strings by a canonical hashed key.",
+      "concepts": [],
+      "description": "Graph traversal with a visited map.",
       "difficulty": "Medium",
-      "evidence": "Related practice: the same group-by-canonical-key pattern as file dedup and as building memoization cache keys.",
-      "evidence_urls": [],
-      "from_dataset": false,
-      "from_web": false,
-      "in_roadmap": true,
-      "kind": "leetcode",
-      "title": "Group Anagrams",
-      "topic": "Arrays & Hashing",
-      "url": "https://leetcode.com/problems/group-anagrams",
-      "weight": 0.35
-    },
-    {
-      "description": "Deep-copy a graph using BFS or DFS with a visited map.",
-      "difficulty": "Medium",
-      "evidence": "Related practice: the BFS-with-visited-map pattern behind the web crawler.",
+      "evidence": "Trains the same visited-set BFS/DFS used in the web crawler.",
       "evidence_urls": [],
       "from_dataset": false,
       "from_web": false,
@@ -288,86 +419,10 @@
       "weight": 0.35
     },
     {
-      "description": "Use PIL to convert images to grayscale, scale and resize them.",
-      "difficulty": "Easy",
-      "evidence": "A single Mar 2026 phone-screen report.",
-      "evidence_urls": [
-        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
-      ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Image processing with PIL",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.3
-    },
-    {
-      "description": "Simulate a fair coin flip using only a biased coin (von Neumann trick: flip twice, use HT/TH, retry on HH/TT).",
-      "difficulty": "Easy",
-      "evidence": "Phone-screen title only, so low confidence.",
-      "evidence_urls": [
-        "https://prachub.com/companies/anthropic",
-        "https://www.1point3acres.com/interview/problems/company/anthropic"
-      ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Fair coin from a biased coin",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.3
-    },
-    {
-      "description": "Implement insert, search and startsWith on a trie.",
+      "concepts": [],
+      "description": "Stateful multi-method class design.",
       "difficulty": "Medium",
-      "evidence": "Related practice: trains the prefix-scan level of the in-memory DB and the autocomplete-style questions.",
-      "evidence_urls": [],
-      "from_dataset": false,
-      "from_web": false,
-      "in_roadmap": true,
-      "kind": "leetcode",
-      "title": "Implement Trie Prefix Tree",
-      "topic": "Tries",
-      "url": "https://leetcode.com/problems/implement-trie-prefix-tree",
-      "weight": 0.3
-    },
-    {
-      "description": "Serialize a list of strings to one string and back.",
-      "difficulty": "Medium",
-      "evidence": "Related practice: serialization skill needed for the DB backup/restore level and for persisting a durable LRU to disk.",
-      "evidence_urls": [],
-      "from_dataset": false,
-      "from_web": false,
-      "in_roadmap": true,
-      "kind": "leetcode",
-      "title": "Encode and Decode Strings",
-      "topic": "Arrays & Hashing",
-      "url": "https://leetcode.com/problems/encode-and-decode-strings",
-      "weight": 0.3
-    },
-    {
-      "description": "Return the top-3 historical sentences matching a typed prefix, updating counts as input arrives.",
-      "difficulty": "Hard",
-      "evidence": "A 'hashtag autocomplete' title was reported, and the report says it may resemble LC 642. Undated, low confidence.",
-      "evidence_urls": [
-        "https://www.1point3acres.com/interview/problems/company/anthropic"
-      ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "leetcode",
-      "title": "Design Search Autocomplete System",
-      "topic": "Tries",
-      "url": "https://leetcode.com/problems/design-search-autocomplete-system",
-      "weight": 0.25
-    },
-    {
-      "description": "Design a stateful class with post, follow and feed operations.",
-      "difficulty": "Medium",
-      "evidence": "Related practice: multi-method stateful API design under an exact interface, like the OA classes.",
+      "evidence": "Trains the stateful, multi-operation class design that the 4-level OA simulators require.",
       "evidence_urls": [],
       "from_dataset": false,
       "from_web": false,
@@ -376,12 +431,93 @@
       "title": "Design Twitter",
       "topic": "Heap / Priority Queue",
       "url": "https://leetcode.com/problems/design-twitter",
+      "weight": 0.35
+    },
+    {
+      "concepts": [
+        "inverted index",
+        "sharding",
+        "replication",
+        "query fan-out / aggregation",
+        "caching"
+      ],
+      "description": "Search over 1B docs at 1M QPS.",
+      "difficulty": "Hard",
+      "evidence": "Aggregated 2026 prompt list.",
+      "evidence_urls": [
+        "https://igotanoffer.com/en/advice/anthropic-interview-questions",
+        "https://www.designgurus.io/answers/detail/what-to-expect-in-the-anthropic-system-design-interview"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": false,
+      "kind": "design",
+      "title": "Distributed Search over 1B Documents",
+      "topic": "Design: Storage & Caching",
+      "url": "",
+      "weight": 0.3
+    },
+    {
+      "concepts": [
+        "peer-to-peer distribution",
+        "chunking",
+        "checksums",
+        "bandwidth limits",
+        "retries / fault tolerance"
+      ],
+      "description": "Distribute large model weights or files to thousands of hosts quickly and reliably (related to the reported peer-to-peer model downloader).",
+      "difficulty": "Hard",
+      "evidence": "Aggregated 2026 prompt lists.",
+      "evidence_urls": [
+        "https://www.aced.io/blog/anthropic-system-design-interview",
+        "https://trueinterview.io/study/anthropic-software-engineer-interview-process"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": false,
+      "kind": "design",
+      "title": "Model / File Distribution to Thousands of Machines",
+      "topic": "Design: Infrastructure & ML",
+      "url": "",
+      "weight": 0.3
+    },
+    {
+      "concepts": [],
+      "description": "Group items by a canonical hash key.",
+      "difficulty": "Medium",
+      "evidence": "Same group-by-key hashing as Find Duplicate File in System and LRU key generation.",
+      "evidence_urls": [],
+      "from_dataset": false,
+      "from_web": false,
+      "in_roadmap": true,
+      "kind": "leetcode",
+      "title": "Group Anagrams",
+      "topic": "Arrays & Hashing",
+      "url": "https://leetcode.com/problems/group-anagrams",
+      "weight": 0.3
+    },
+    {
+      "concepts": [],
+      "description": "Compute mode and median of data partitioned across nodes using supplied messaging interfaces, minimizing communication cost.",
+      "difficulty": "Hard",
+      "evidence": "Mar 2026 infra-role onsite; less likely for generalist mid-level.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning"
+      ],
+      "from_dataset": false,
+      "from_web": true,
+      "in_roadmap": false,
+      "kind": "practical",
+      "title": "Distributed Mode and Median",
+      "topic": "Practical Coding",
+      "url": "",
       "weight": 0.25
     },
     {
-      "description": "Stack supporting O(1) getMin.",
+      "concepts": [],
+      "description": "Stack with O(1) min.",
       "difficulty": "Medium",
-      "evidence": "Related practice: stack-state bookkeeping used in Exclusive Time of Functions and the profiler trace-events question.",
+      "evidence": "Stack-state practice for the profiler and Exclusive Time of Functions style questions.",
       "evidence_urls": [],
       "from_dataset": false,
       "from_web": false,
@@ -393,52 +529,162 @@
       "weight": 0.25
     },
     {
-      "description": "Build a uniform rand10 from rand7 via rejection sampling.",
+      "concepts": [
+        "API gateway",
+        "session storage",
+        "streaming",
+        "quota / rate limits"
+      ],
+      "description": "Developer-facing UI and backend for experimenting with prompts against models.",
       "difficulty": "Medium",
-      "evidence": "The report says the fair-coin question is similar in spirit to LC 470. Low confidence.",
+      "evidence": "Aggregated 2026 prompt list.",
       "evidence_urls": [
-        "https://prachub.com/companies/anthropic"
+        "https://trueinterview.io/study/anthropic-software-engineer-interview-process"
       ],
       "from_dataset": false,
       "from_web": true,
       "in_roadmap": false,
+      "kind": "design",
+      "title": "Prompt Playground",
+      "topic": "Design: Product Systems",
+      "url": "",
+      "weight": 0.2
+    },
+    {
+      "concepts": [],
+      "description": "Running median with two heaps.",
+      "difficulty": "Hard",
+      "evidence": "Single-node building block for the reported distributed mode/median question.",
+      "evidence_urls": [],
+      "from_dataset": false,
+      "from_web": false,
+      "in_roadmap": true,
       "kind": "leetcode",
-      "title": "Implement Rand10() Using Rand7()",
-      "topic": "Math & Geometry",
-      "url": "https://leetcode.com/problems/implement-rand10-using-rand7",
+      "title": "Find Median From Data Stream",
+      "topic": "Heap / Priority Queue",
+      "url": "https://leetcode.com/problems/find-median-from-data-stream",
       "weight": 0.2
     },
     {
-      "description": "Implement an agent loop that calls tools (e.g. a price lookup) and feeds the results back until it reaches an answer.",
+      "concepts": [],
+      "description": "Frequency counting plus selection.",
       "difficulty": "Medium",
-      "evidence": "Title only, undated, low confidence.",
-      "evidence_urls": [
-        "https://www.1point3acres.com/interview/problems/company/anthropic"
-      ],
+      "evidence": "Frequency/mode aggregation underlying the distributed mode question and OA scan/ranking levels.",
+      "evidence_urls": [],
       "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Stock-price agent with tool-calling loop",
-      "topic": "Practical Coding",
-      "url": "",
+      "from_web": false,
+      "in_roadmap": true,
+      "kind": "leetcode",
+      "title": "Top K Frequent Elements",
+      "topic": "Arrays & Hashing",
+      "url": "https://leetcode.com/problems/top-k-frequent-elements",
+      "weight": 0.2
+    }
+  ],
+  "role": "Software Engineer",
+  "rounds": [
+    {
+      "count": 1,
+      "description": "15\u201330 min call (sometimes two) on why Anthropic, background, views on AI safety, and logistics; candidates who haven't done the reading fail here.",
+      "evidence_urls": [
+        "https://trueinterview.io/study/anthropic-software-engineer-interview-process",
+        "https://interviewing.io/anthropic-interview-questions",
+        "https://www.glassdoor.com/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
+      ],
+      "name": "Recruiter Screen",
+      "track": "behavioral",
+      "weight": 0.05
+    },
+    {
+      "count": 1,
+      "description": "90 min to build one stateful system (KV database, bank, task manager) over 4 levels; you must pass every test at a level to unlock the next; tests speed, spec reading and extensibility. Some candidates get a live Colab version instead.",
+      "evidence_urls": [
+        "https://www.hellointerview.com/guides/anthropic/swe",
+        "https://interviewing.io/anthropic-interview-questions",
+        "https://www.aced.io/guides/anthropic-software-engineer-interview",
+        "https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
+      ],
+      "name": "CodeSignal Online Assessment (Industry Coding Assessment)",
+      "track": "practical",
       "weight": 0.2
     },
     {
-      "description": "Compute the most frequent value across data split over multiple shards or machines by merging per-shard counts.",
-      "difficulty": "Medium",
-      "evidence": "Title only, undated, low confidence.",
+      "count": 1,
+      "description": "~60 min of live practical coding with layered follow-ups, e.g. a decorator-style LRU cache with crash recovery, or a web crawler.",
       "evidence_urls": [
-        "https://www.1point3acres.com/interview/problems/company/anthropic"
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite"
       ],
-      "from_dataset": false,
-      "from_web": true,
-      "in_roadmap": false,
-      "kind": "practical",
-      "title": "Global mode across distributed shards",
-      "topic": "Practical Coding",
-      "url": "",
-      "weight": 0.2
+      "name": "Technical Phone Screen",
+      "track": "practical",
+      "weight": 0.1
+    },
+    {
+      "count": 1,
+      "description": "45\u201360 min on architectural reasoning (what fails first under load, observability), judgment and team fit; may include code review.",
+      "evidence_urls": [
+        "https://igotanoffer.com/en/advice/anthropic-interview-questions",
+        "https://www.designgurus.io/blog/anthropic-interview-process"
+      ],
+      "name": "Hiring Manager Screen",
+      "track": "behavioral",
+      "weight": 0.07
+    },
+    {
+      "count": 1,
+      "description": "~55 min practical coding, most often the web crawler going from single-threaded to concurrent workers; local environment and internet allowed, no AI assistants.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite",
+        "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad",
+        "https://www.aced.io/blog/anthropic-interview-process",
+        "https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
+      ],
+      "name": "Onsite Coding",
+      "track": "practical",
+      "weight": 0.18
+    },
+    {
+      "count": 1,
+      "description": "~55 min in a shared Google Doc; infra-style prompts such as GPU inference batching, a chat service or a KV store, focused on queuing, batching, routing and overload behavior.",
+      "evidence_urls": [
+        "https://www.tryexponent.com/questions?company=anthropic&type=system-design",
+        "https://www.aced.io/blog/anthropic-system-design-interview",
+        "https://www.tryexponent.com/experiences/anthropic-senior-software-engineer-interview-2ffa5f"
+      ],
+      "name": "System Design",
+      "track": "system_design",
+      "weight": 0.15
+    },
+    {
+      "count": 1,
+      "description": "Detailed walkthrough of a past project: decisions, trade-offs, your own contribution.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite"
+      ],
+      "name": "Project Deep Dive",
+      "track": "behavioral",
+      "weight": 0.08
+    },
+    {
+      "count": 1,
+      "description": "Two interviewers probe ethics, moral conflicts and your reading of Anthropic's culture documents 3\u20134 follow-ups deep; reported as the round with the highest failure rate.",
+      "evidence_urls": [
+        "https://www.aced.io/blog/anthropic-interview-process",
+        "https://www.tryexponent.com/experiences/anthropic-senior-software-engineer-interview-2ffa5f",
+        "https://www.aced.io/guides/anthropic-software-engineer-interview"
+      ],
+      "name": "Culture / Values Interview",
+      "track": "behavioral",
+      "weight": 0.12
+    },
+    {
+      "count": 1,
+      "description": "Your most impactful project plus standard behavioral questions.",
+      "evidence_urls": [
+        "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite"
+      ],
+      "name": "Hiring Manager Interview",
+      "track": "behavioral",
+      "weight": 0.05
     }
   ],
   "slug": "anthropic",
@@ -457,173 +703,48 @@
     },
     {
       "kind": "web",
-      "title": "Interviews 13512",
-      "url": "https://www.teamblind.com/browse/Interviews-13512?page=2"
+      "title": "Anthropic Coding & System Design Interview Prep Guide",
+      "url": "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad"
     },
     {
       "kind": "web",
-      "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/search/onsite"
+      "title": "Anthropic Staff Software Engineer Interview Experience \u2014 A Surprise Extra Round, Then a Downlevel to Senior",
+      "url": "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
     },
     {
       "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=7"
+      "title": "Implement an LRU Cache from Anthropic",
+      "url": "https://www.1point3acres.com/interview/problems/fef6cb52-1fcf-44cf-8072-e610257ede5e"
     },
     {
       "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=2"
+      "title": "Anthropic Software Engineer Interview Prep Guide",
+      "url": "https://prachub.com/interview-prep/JaRZkTqU0x9A"
     },
     {
       "kind": "web",
-      "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/company/Anthropic/posts?page=10"
+      "title": "Anthropic Software Engineer Interview Experience \u2014 OA, a Python LRU Cache Phone Screen, and Rejection After a Full Onsite",
+      "url": "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite"
     },
     {
       "kind": "web",
-      "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/company/Anthropic/posts?page=9"
+      "title": "Anthropic Coding Interview: 19 Real Questions (Sep 2026)",
+      "url": "https://aceoffer.app/interviews/anthropic/coding-questions"
     },
     {
       "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=5"
+      "title": "How I Beat 2026 Anthropic Interview: My Process & Questions",
+      "url": "https://www.linkjob.ai/interview-questions/anthropic-interview-process/"
     },
     {
       "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview"
+      "title": "Anthropic Coding Interview Questions & Patterns (2026)",
+      "url": "https://articles.shadecoder.com/anthropic-coding-interview-questions-patterns-2026"
     },
     {
       "kind": "web",
-      "title": "anthropic final round experience and goals 8z0msm06",
-      "url": "https://www.teamblind.com/post/anthropic-final-round-experience-and-goals-8z0msm06"
-    },
-    {
-      "kind": "web",
-      "title": "[OA + Coding Question] Anthropic Phone Screen",
-      "url": "https://leetcode.com/discuss/post/7559983/"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer Interview Experience & Questions",
-      "url": "https://www.glassdoor.com/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic\u2019s Interview Process & Questions",
-      "url": "https://interviewing.io/anthropic-interview-questions"
-    },
-    {
-      "kind": "web",
-      "title": "I failed my Anthropic interview and came to tell you all about it so you don't have to",
-      "url": "https://blog.goncharov.page/i-failed-my-anthropic-interview-and-came-to-tell-you-all-about-it-so-you-dont-have-to"
-    },
-    {
-      "kind": "web",
-      "title": "AI Coding Interview Questions: Anthropic, Meta, OpenAI",
-      "url": "https://callsphere.ai/blog/ai-coding-interview-questions-2026-anthropic-meta-openai"
-    },
-    {
-      "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=9"
-    },
-    {
-      "kind": "web",
-      "title": "Artificial Intelligence",
-      "url": "https://www.teamblind.com/post/atlassian-interview-preparation-et67z8xk"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer (SWE) Interview Guide",
-      "url": "https://www.tryexponent.com/guides/anthropic-software-engineer-interview"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer Interview (questions, process, prep) - IGotAnOffer",
-      "url": "https://igotanoffer.com/en/advice/anthropic-software-engineer-interview"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer Interview Experience \u2014 Onsite Loop with a 1-on-1 Chat System Design, File Dedup Coding, and a Culture Round I Couldn't Read",
-      "url": "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read"
-    },
-    {
-      "kind": "web",
-      "title": "2026 Anthropic Software Engineer Onsite PR Review Round, What It Tests: 2 Experiences",
-      "url": "https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Senior Software Engineer Interview Experience \u2014 Referral, Product-Focused System Design and an $850k Offer",
-      "url": "https://prachub.com/interview-experiences/anthropic-senior-software-engineer-interview-experience-referral-product-focused-system-design-and-an-850k-offer"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic System Design Interview (2026 Guide) - Aced (formerly Exponent)",
-      "url": "https://www.aced.io/blog/anthropic-system-design-interview"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Interview Process: Rounds, Format & Timeline (2026)",
-      "url": "https://www.hack2hire.com/blog/anthropic-interview-process-rounds-format-timeline-2026"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Onsite Interview: Every Round, What It Tests, and How to Prepare \u00b7 SpaceComplexity",
-      "url": "https://spacecomplexity.ai/blog/anthropic-onsite-interview"
-    },
-    {
-      "kind": "web",
-      "title": "anthropic on site interview distributed system role rpzmgjob",
-      "url": "https://www.teamblind.com/post/anthropic-on-site-interview-distributed-system-role-rpzmgjob"
-    },
-    {
-      "kind": "web",
-      "title": "Scoop: Anthropic candidates face blunt money question in job interviews",
-      "url": "https://www.axios.com/2026/08/24/scoop-anthropic-candidates-face-blunt-money-question"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Interview Megathread",
-      "url": "https://www.teamblind.com/post/anthropic-interview-megathread-6estt896"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Discussions - Blind",
-      "url": "https://www.teamblind.com/company/Anthropic/posts"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Interview",
-      "url": "https://www.teamblind.com/post/anthropic-interview-szdhw35i"
-    },
-    {
-      "kind": "web",
-      "title": "Leaked Anthropic Interview",
-      "url": "https://www.teamblind.com/post/leaked-anthropic-interview-xxu4aoca"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic System Design Interviews",
-      "url": "https://www.teamblind.com/post/anthropic-system-design-interviews-64jja1oo"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic interview experience",
-      "url": "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx"
-    },
-    {
-      "kind": "web",
-      "title": "openai/anthropic interview difficulty compared to meta",
-      "url": "https://www.teamblind.com/post/openaianthropic-interview-difficulty-compared-to-meta-gpptpuwo"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Interview Question: Design an in-memory database and a function to do odd CRUD operations. Written as poorly as possible",
-      "url": "https://www.glassdoor.com/Interview/Design-an-in-memory-database-and-a-function-to-do-odd-CRUD-operations-Written-as-poorly-as-possible-QTN_6453458.htm"
+      "title": "DIY: LRU Cache",
+      "url": "https://www.educative.io/courses/decode-the-coding-interview-elixir/diy-lru-cache"
     },
     {
       "kind": "web",
@@ -632,23 +753,28 @@
     },
     {
       "kind": "web",
-      "title": "Anthropic Senior Software Engineer Interview Questions",
-      "url": "https://nodeflair.com/companies/anthropic/interviews/senior-software-engineer-l86upq"
+      "title": "Complete guide to Anthropic's CodeSignal progressive coding assessment. Covers the 4-level format, verified problem types, scoring (520+ to advance), preparation framework, and worked examples. - Sundeep Teki",
+      "url": "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide"
     },
     {
       "kind": "web",
-      "title": "Multi-Level In-Memory Database with TTL and Time Travel from Anthropic",
-      "url": "https://www.1point3acres.com/interview/problems/a3816a9d-04af-5a4a-8363-20be75018fd2"
+      "title": "Anthropic Software Engineer Interview Guide (2026)",
+      "url": "https://www.hellointerview.com/guides/anthropic/swe"
     },
     {
       "kind": "web",
-      "title": "In-Memory Database Historical Lookup (Anthropic Online Assessment) - Coding Interview Problem",
-      "url": "https://www.fastprep.io/problems/anthropic-in-memory-database-historical-lookup"
+      "title": "Anthropic AI Safety Fellow interview (questions, process, prep) - IGotAnOffer",
+      "url": "https://igotanoffer.com/en/advice/anthropic-ai-safety-fellow-interview"
     },
     {
       "kind": "web",
-      "title": "In-Memory Database with Backup and Restore (Anthropic Online Assessment) - Coding Interview Problem",
-      "url": "https://www.fastprep.io/problems/anthropic-in-memory-database-backup-restore"
+      "title": "Anthropic Staff Software Engineer Interview Guide (2026)",
+      "url": "https://www.hellointerview.com/guides/anthropic/staff"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Software Engineer Interview Guide 2026: Process & Questions",
+      "url": "https://www.interviewquery.com/guides/anthropic-software-engineer?exp_page=1"
     },
     {
       "kind": "web",
@@ -657,18 +783,28 @@
     },
     {
       "kind": "web",
-      "title": "In-memory Database (Online Assessment) \u00b7 Anthropic - JobsMoi",
-      "url": "https://jobsmoi.com/question/anthropic/in-memory-database-online-assessment"
+      "title": "Anthropic CodeSignal Interview: Format, Questions and Prep",
+      "url": "https://fonzi.ai/blog/anthropic-codesignal"
+    },
+    {
+      "kind": "web",
+      "title": "How I Practiced Anthropic Codesignal Questions and Passed My Interview",
+      "url": "https://www.linkjob.ai/interview-questions/codesignal-anthropic-practice/"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Software Engineer Interview Questions",
+      "url": "https://www.glassdoor.com.au/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Software Engineer Interview Experience & Questions",
+      "url": "https://www.glassdoor.com/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
     },
     {
       "kind": "web",
       "title": "Anthropic Senior Software Engineer Interview Questions",
       "url": "https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer Interview Questions",
-      "url": "https://www.glassdoor.com.hk/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm"
     },
     {
       "kind": "web",
@@ -687,6 +823,11 @@
     },
     {
       "kind": "web",
+      "title": "Anthropic Interview Experience & Questions (2026)",
+      "url": "https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027.htm"
+    },
+    {
+      "kind": "web",
       "title": "Anthropic Senior Fullstack Software Engineer Interview Experience & Questions",
       "url": "https://www.glassdoor.com/Interview/Anthropic-Senior-Fullstack-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,44.htm"
     },
@@ -697,68 +838,103 @@
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Questions (2025)",
-      "url": "https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027_P2.htm"
+      "title": "Anthropic Software Engineer Interview Guide 2026: Process & Questions",
+      "url": "https://www.interviewquery.com/guides/anthropic-software-engineer"
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Experience & Questions (2026)",
-      "url": "https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027.htm"
+      "title": "Anthropic Interview Process and Questions (2026 Guide)",
+      "url": "https://huru.ai/anthropic-interview-questions/"
     },
     {
       "kind": "web",
-      "title": "Anthropic Software Engineer Interview Guide (2026)",
-      "url": "https://www.hellointerview.com/guides/anthropic/swe"
+      "title": "Anthropic Software Engineer Interview (questions, process, prep) - IGotAnOffer",
+      "url": "https://igotanoffer.com/en/advice/anthropic-software-engineer-interview"
     },
     {
       "kind": "web",
-      "title": "Complete guide to Anthropic's CodeSignal progressive coding assessment. Covers the 4-level format, verified problem types, scoring (520+ to advance), preparation framework, and worked examples. - Sundeep Teki",
-      "url": "https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide"
+      "title": "Anthropic Interview Process: Complete Guide to OA, Technical Interviews, and Hiring Stages - DEV Community",
+      "url": "https://dev.to/__936f764e0b89ebfd5bd0/anthropic-interview-process-complete-guide-to-oa-technical-interviews-and-hiring-stages-56ef"
     },
     {
       "kind": "web",
-      "title": "Anthropic AI Safety Fellow interview (questions, process, prep) - IGotAnOffer",
-      "url": "https://igotanoffer.com/en/advice/anthropic-ai-safety-fellow-interview"
+      "title": "Anthropic Software Engineer Interview Process \u00b7 TrueInterview",
+      "url": "https://trueinterview.io/study/anthropic-software-engineer-interview-process"
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Process & Timeline: 7 Steps to an Offer - IGotAnOffer",
-      "url": "https://igotanoffer.com/en/advice/anthropic-interview-process"
+      "title": "Anthropic Software Engineer (SWE) Interview Guide",
+      "url": "https://www.aced.io/guides/anthropic-software-engineer-interview"
     },
     {
       "kind": "web",
-      "title": "Anthropic Staff Software Engineer Interview Guide (2026)",
-      "url": "https://www.hellointerview.com/guides/anthropic/staff"
+      "title": "Anthropic Software Engineer Interview: Process & Questions",
+      "url": "https://www.datainterview.com/blog/anthropic-software-engineer-interview"
     },
     {
       "kind": "web",
-      "title": "Anthropic AI Safety Fellow Interview Guide",
-      "url": "https://www.aced.io/guides/anthropic-ai-safety-fellow-interview"
+      "title": "Anthropic Software Engineer Interview Guide",
+      "url": "https://www.chillinterview.com/learn/interview-guides/anthropic-software-engineer-interview-guide"
     },
     {
       "kind": "web",
-      "title": "How to Pass the Anthropic Interview Process in 2026 (Stage-by-Stage Guide)",
-      "url": "https://leonstaff.com/blogs/anthropic-interview-process/"
+      "title": "Anthropic Interview Process: Complete Guide for 2025/2026 Candidates",
+      "url": "https://www.finalroundai.com/blog/anthropic-interview-process"
     },
     {
       "kind": "web",
-      "title": "Anthropic CodeSignal Interview: Format, Questions and Prep",
-      "url": "https://fonzi.ai/blog/anthropic-codesignal"
+      "title": "anthropic culture interview syng3rar",
+      "url": "https://www.teamblind.com/post/anthropic-culture-interview-syng3rar"
     },
     {
       "kind": "web",
-      "title": "How to Ace Your Anthropic CodeSignal Assessment: A Step-by-Step Guide",
-      "url": "https://www.finalroundai.com/blog/how-to-ace-your-anthropic-code-signal-assessment-a-step-by-step-guide"
+      "title": "anthropic interview",
+      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=9"
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Question Bank",
-      "url": "https://www.1point3acres.com/interview/problems/company/anthropic"
+      "title": "Anyone interviewed there? How is it? Do they ask leetcode? This is for SWE role in AI",
+      "url": "https://www.teamblind.com/post/anthropic-interview-advice-854xygjz"
     },
     {
       "kind": "web",
-      "title": "Anthropic Coding & System Design Interview Prep Guide",
-      "url": "https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad"
+      "title": "do openai and anthropic still expect you to manually leetcode mbzzci4i",
+      "url": "https://www.teamblind.com/post/do-openai-and-anthropic-still-expect-you-to-manually-leetcode-mbzzci4i"
+    },
+    {
+      "kind": "web",
+      "title": "Looking for insights as to what level of leetcode questions to expect for sde role",
+      "url": "https://www.teamblind.com/post/anyone-interview-with-braze-recently-ddwitzw0"
+    },
+    {
+      "kind": "web",
+      "title": "anthropic interview szdhw35i",
+      "url": "https://www.teamblind.com/post/anthropic-interview-szdhw35i"
+    },
+    {
+      "kind": "web",
+      "title": "Did leetcode prep come in handy for Anthropic interviews, or should I focus on something else?",
+      "url": "https://www.teamblind.com/post/do-i-need-to-leetcode-b78cdrje"
+    },
+    {
+      "kind": "web",
+      "title": "anthropic interview",
+      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview"
+    },
+    {
+      "kind": "web",
+      "title": "anthropic interview process zfl22lqf",
+      "url": "https://www.teamblind.com/post/anthropic-interview-process-zfl22lqf"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Software Engineer, Safeguards Interview Experience (2026) - Aced (formerly Exponent)",
+      "url": "https://www.tryexponent.com/experiences/anthropic-senior-software-engineer-interview-2ffa5f"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Software Engineer Interview Experience \u2014 Distributed Coding, AI Safety, and Hardware Reasoning",
+      "url": "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning"
     },
     {
       "kind": "web",
@@ -767,83 +943,203 @@
     },
     {
       "kind": "web",
-      "title": "Anthropic Software Engineer Interview Prep Guide",
-      "url": "https://prachub.com/interview-prep/Qb1NwDk3hIoL"
+      "title": "Anthropic Software Engineer Interview Experience \u2014 Full Onsite Loop, Rejected at the HM Round",
+      "url": "https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-full-onsite-loop-rejected-at-the-hm-round"
     },
     {
       "kind": "web",
-      "title": "Web Crawler System Design Interview: Frontier, Politeness, and Dedup",
-      "url": "https://prachub.com/resources/web-crawler-system-design"
+      "title": "My 2026 Anthropic SWE Interview Experience and Questions",
+      "url": "https://www.linkjob.ai/interview-questions/anthropic-software-engineer-interview/"
     },
     {
       "kind": "web",
-      "title": "Design a concurrent web crawler",
-      "url": "https://prachub.com/interview-questions/design-a-concurrent-web-crawler-2"
+      "title": "Anthropic System Design Interview Questions (Updated 2026) - Exponent",
+      "url": "https://www.tryexponent.com/questions?company=anthropic&type=system-design"
     },
     {
       "kind": "web",
-      "title": "Design a concurrent web crawler",
-      "url": "https://prachub.com/interview-questions/design-a-concurrent-web-crawler-3"
+      "title": "What to Expect in the Anthropic System Design Interview",
+      "url": "https://www.designgurus.io/answers/detail/what-to-expect-in-the-anthropic-system-design-interview"
     },
     {
       "kind": "web",
-      "title": "I Compiled Anthropic Concurrency Interview Questions in 2026",
-      "url": "https://www.linkjob.ai/interview-questions/anthropic-concurrency-interview/"
+      "title": "Anthropic Technical Interview Questions: Complete Guide 2026 - Jobright Blog",
+      "url": "https://jobright.ai/blog/anthropic-technical-interview-questions-complete-guide-2026/"
     },
     {
       "kind": "web",
-      "title": "Design a scalable web crawler",
-      "url": "https://prachub.com/interview-questions/design-a-scalable-web-crawler"
+      "title": "Anthropic System Design Interview: A Complete Guide 2026",
+      "url": "https://www.systemdesignhandbook.com/guides/anthropic-system-design-interview/"
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Experience (Software Engineer Role)",
-      "url": "https://www.teamblind.com/post/Anthropic-Interview-Experience-Software-Engineer-Role-e7QbATrh"
+      "title": "Anthropic System Design Interview (2026 Guide) - Aced (formerly Exponent)",
+      "url": "https://www.aced.io/blog/anthropic-system-design-interview"
     },
     {
       "kind": "web",
-      "title": "Anthropic Phone Screen Interview: What Gets Tested and How to Pass \u00b7 SpaceComplexity",
-      "url": "https://spacecomplexity.ai/blog/anthropic-phone-screen-interview"
+      "title": "Anthropic System Design Interview Questions: Complete Preparation Guide",
+      "url": "https://www.coditioning.com/blog/15/anthropic-system-design-interview-questions"
     },
     {
       "kind": "web",
-      "title": "anthropic codesignal interview gdclgwkl",
-      "url": "https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl"
+      "title": "Anthropic Interview Prep \u2014 System Design & Coding Questions",
+      "url": "https://tieroneprep.com/companies/anthropic"
     },
     {
       "kind": "web",
-      "title": "anthropic pre screen coding round a52n538q",
-      "url": "https://www.teamblind.com/post/anthropic-pre-screen-coding-round-a52n538q"
+      "title": "Anthropic System Design Interview Questions and AI Systems Prep",
+      "url": "https://extrabrain.app/interview-questions/anthropic-system-design-interview-extrabrain/"
     },
     {
       "kind": "web",
-      "title": "anthropic phone screen tfrn5jkm",
-      "url": "https://www.teamblind.com/post/anthropic-phone-screen-tfrn5jkm"
+      "title": "My Anthropic System Design Interview Experience in 2026",
+      "url": "https://www.linkjob.ai/interview-questions/anthropic-system-design-interview/"
     },
     {
       "kind": "web",
-      "title": "anthropic interview experience software engineer role e7qbatrh",
-      "url": "https://www.teamblind.com/post/anthropic-interview-experience-software-engineer-role-e7qbatrh"
+      "title": "Anthropic\u2019s Interview Process & Questions",
+      "url": "https://interviewing.io/anthropic-interview-questions"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic - no coding interview anymore",
+      "url": "https://www.teamblind.com/post/anthropic-no-coding-interview-anymore-wm66qjrz"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Discussions - Blind",
+      "url": "https://www.teamblind.com/company/Anthropic/posts"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Megathread",
+      "url": "https://www.teamblind.com/post/anthropic-interview-megathread-6estt896"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic interview experience",
+      "url": "https://www.teamblind.com/post/anthropic-interview-experience-32np17wd"
+    },
+    {
+      "kind": "web",
+      "title": "Interview at Anthropic, terrible experience",
+      "url": "https://www.teamblind.com/post/interview-at-anthropic-terrible-experience-8g5jxfag"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic interview experience",
+      "url": "https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx"
+    },
+    {
+      "kind": "web",
+      "title": "anthropic interview",
+      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=2"
+    },
+    {
+      "kind": "web",
+      "title": "Get a Job at Anthropic: Interview Process and Top Questions",
+      "url": "https://customcareer.miami.edu/blog/2026/05/14/get-a-job-at-anthropic-interview-process-and-top-questions/"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Process: Rounds, Questions, and How to Prepare",
+      "url": "https://www.designgurus.io/blog/anthropic-interview-process"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Process & Timeline: 7 Steps to an Offer - IGotAnOffer",
+      "url": "https://igotanoffer.com/en/advice/anthropic-interview-process"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Process 2026: Rounds, Difficulty & What to Expect",
+      "url": "https://dataford.io/interview-guides/anthropic"
+    },
+    {
+      "kind": "web",
+      "title": "Get a Job at Anthropic: Interview Process and Top Questions - Aced (formerly Exponent)",
+      "url": "https://www.aced.io/blog/anthropic-interview-process"
+    },
+    {
+      "kind": "web",
+      "title": "How to Prepare for an Anthropic Interview in 2026 \u2014 Culture, Process & Questions",
+      "url": "https://jobsbyculture.com/blog/anthropic-interview-prep-2026"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Process: Rounds, Format & Timeline (2026)",
+      "url": "https://www.hack2hire.com/blog/content/6a2199e28b879849ebc11ff2"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Onsite Interview: Every Round, What It Tests, and How to Prepare \u00b7 SpaceComplexity",
+      "url": "https://spacecomplexity.ai/blog/anthropic-onsite-interview"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Process & Rounds",
+      "url": "https://aceoffer.app/interviews/anthropic/interview-process"
+    },
+    {
+      "kind": "web",
+      "title": "loop interview with anthropic ytkowjum",
+      "url": "https://www.teamblind.com/post/loop-interview-with-anthropic-ytkowjum"
     },
     {
       "kind": "web",
       "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/search/Codesignal"
+      "url": "https://www.teamblind.com/search/onsite"
     },
     {
       "kind": "web",
-      "title": "anthropic codesignal experience aumkcovi",
-      "url": "https://www.teamblind.com/post/anthropic-codesignal-experience-aumkcovi"
+      "title": "Interviews 13512",
+      "url": "https://www.teamblind.com/browse/Interviews-13512?page=2"
     },
     {
       "kind": "web",
-      "title": "GitHub - ryanhestin/anthropic-challenge: My rendition of the now infamous \"call stack sampler\" challenge from Anthropic featured in a recent viral video \u00b7 GitHub",
-      "url": "https://github.com/ryanhestin/anthropic-challenge"
+      "title": "anthropic partner solution architect role ab8kecyn",
+      "url": "https://www.teamblind.com/post/anthropic-partner-solution-architect-role-ab8kecyn"
     },
     {
       "kind": "web",
-      "title": "Anthropic Mock Coding Interview - Sampling Profiler - Lean Hire - YouTube",
-      "url": "https://www.youtube.com/watch?v=fjjbte2y0dE"
+      "title": "anthropic interview",
+      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=7"
+    },
+    {
+      "kind": "web",
+      "title": "www.teamblind.com",
+      "url": "https://www.teamblind.com/company/Anthropic/posts?page=10"
+    },
+    {
+      "kind": "web",
+      "title": "www.teamblind.com",
+      "url": "https://www.teamblind.com/company/Anthropic/posts?page=13"
+    },
+    {
+      "kind": "web",
+      "title": "anthropic onsite ng00s8cn",
+      "url": "https://www.teamblind.com/post/anthropic-onsite-ng00s8cn"
+    },
+    {
+      "kind": "web",
+      "title": "what to expect from onsite interviews at box fyhfb14d",
+      "url": "https://www.teamblind.com/post/what-to-expect-from-onsite-interviews-at-box-fyhfb14d"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Tech Screen Phone Interview|anthropic\u9762\u7ecf|\u4e00\u4ea9\u4e09\u5206\u5730\u6d77\u5916\u9762\u7ecf\u7248",
+      "url": "https://www.1point3acres.com/bbs/thread-1089271-1-1.html"
+    },
+    {
+      "kind": "web",
+      "title": "Anthropic Interview Question: Problem was to implement a stack trace given a list of function calls.",
+      "url": "https://www.glassdoor.com/Interview/Problem-was-to-implement-a-stack-trace-given-a-list-of-function-calls-QTN_7668330.htm"
+    },
+    {
+      "kind": "web",
+      "title": "Convert stack samples to execution trace",
+      "url": "https://prachub.com/coding-questions/convert-stack-samples-to-execution-trace"
     },
     {
       "kind": "web",
@@ -852,13 +1148,8 @@
     },
     {
       "kind": "web",
-      "title": "Anthropic Coding & Algorithms Questions (Updated 2026)",
-      "url": "https://prachub.com/companies/anthropic/categories/coding-and-algorithms"
-    },
-    {
-      "kind": "web",
-      "title": "Convert stack samples to trace events",
-      "url": "https://prachub.com/interview-questions/convert-stack-samples-to-trace-events"
+      "title": "Convert stack samples to execution trace",
+      "url": "https://prachub.com/interview-questions/convert-stack-samples-to-execution-trace"
     },
     {
       "kind": "web",
@@ -872,138 +1163,103 @@
     },
     {
       "kind": "web",
-      "title": "Anthropic AI Engineer Interview Questions & Answers - Page 2",
-      "url": "https://resumeinminutes.com/interview-questions/anthropic/ai-engineer/anthropic-interview-questions-page-2.html"
+      "title": "Anthropic System Design Interviews (questions, process, prep) - IGotAnOffer",
+      "url": "https://igotanoffer.com/en/advice/anthropic-system-design-interview"
     },
     {
       "kind": "web",
-      "title": "Anthropic Interview Breakdown: How I Passed a \u201cSimple\u201d Stack Trace Question with Real-Time Support- Anthropic - VO support - personalized interview consulting",
-      "url": "https://csoahelp.com/2025/04/06/anthropic-interview-breakdown-how-i-passed-a-simple-stack-trace-question-with-real-time-support/"
+      "title": "2026 Anthropic Software Engineer Onsite PR Review Round, What It Tests: 2 Experiences",
+      "url": "https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce"
     },
     {
       "kind": "web",
-      "title": "Anthropic Staff Software Engineer Interview Experience \u2014 A Surprise Extra Round, Then a Downlevel to Senior",
-      "url": "https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Software Engineer Interview Prep Guide",
-      "url": "https://prachub.com/interview-prep/JaRZkTqU0x9A"
+      "title": "Anthropic Interview Process 2026: Stages and Timeline",
+      "url": "https://devsunite.com/interview-process/anthropic-interview-process"
     },
     {
       "kind": "web",
       "title": "Anthropic Software Engineer Interview Questions (2026)",
-      "url": "https://offerflow.pro/interview-questions/software-engineer/at-anthropic"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic Coding Interview: 19 Real Questions (Sep 2026)",
-      "url": "https://aceoffer.app/interviews/anthropic/coding-questions"
-    },
-    {
-      "kind": "web",
-      "title": "How I Beat 2026 Anthropic Interview: My Process & Questions",
-      "url": "https://www.linkjob.ai/interview-questions/anthropic-interview-process/"
-    },
-    {
-      "kind": "web",
-      "title": "Find Duplicate Files",
-      "url": "https://prachub.com/coding-questions/find-duplicate-files"
-    },
-    {
-      "kind": "web",
-      "title": "Anthropic phone screen, File Dedupe question (Q2)",
-      "url": "https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470"
-    },
-    {
-      "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=8"
-    },
-    {
-      "kind": "web",
-      "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/company/Anthropic/posts?page=13"
-    },
-    {
-      "kind": "web",
-      "title": "Anyone interviewed there? How is it? Do they ask leetcode? This is for SWE role in AI",
-      "url": "https://www.teamblind.com/post/anthropic-interview-advice-854xygjz"
-    },
-    {
-      "kind": "web",
-      "title": "www.teamblind.com",
-      "url": "https://www.teamblind.com/company/Anthropic/posts?page=21"
-    },
-    {
-      "kind": "web",
-      "title": "failed interviews at openai anthropic feels bad but happy to answer questions y0715aza",
-      "url": "https://www.teamblind.com/post/failed-interviews-at-openai-anthropic-feels-bad-but-happy-to-answer-questions-y0715aza"
-    },
-    {
-      "kind": "web",
-      "title": "anthropic interview",
-      "url": "https://www.teamblind.com/company/Anthropic/posts/anthropic-interview?page=11"
+      "url": "https://www.getorava.com/interview-guides/software-engineer-anthropic"
     }
   ],
   "topic_weights": [
     {
       "topic": "Practical Coding",
       "weight": 1.0,
-      "why": "Almost every reported question is a practical build. Examples are the in-memory DB, banking system, file storage, profiler trace events, dedup with streaming, durable LRU, and PR review. Several sources say 'no leetcode' in the OA."
+      "why": "The OA, phone screen and onsite coding are all practical: stateful systems, crawler concurrency, LRU with persistence."
     },
     {
-      "topic": "Arrays & Hashing",
-      "weight": 0.8,
-      "why": "Hash maps and sets underpin the KV-store OA, file dedup (group by size, then content hash), and the crawler's visited set."
+      "topic": "Design: Infrastructure & ML",
+      "weight": 0.7,
+      "why": "GPU inference batching is the most reported design prompt; also token generation at 100k RPS and model distribution."
     },
     {
       "topic": "Graphs",
       "weight": 0.65,
-      "why": "The web crawler is BFS over same-host URLs and is the top dataset problem. It was also reported in Sep 2025 screens and onsites."
+      "why": "The web crawler (BFS/DFS plus concurrency) is the most reported coding question; the task manager OA uses dependency/topological ordering."
     },
     {
-      "topic": "Stack",
-      "weight": 0.55,
-      "why": "Both the stack-samples to trace-events profiler question and Exclusive Time of Functions (dataset) need call-stack reasoning and prefix comparison."
+      "topic": "Arrays & Hashing",
+      "weight": 0.6,
+      "why": "Hash maps underpin the KV database, bank, file dedup (LC 609) and LRU key generation."
+    },
+    {
+      "topic": "Design: Storage & Caching",
+      "weight": 0.5,
+      "why": "File cache system, key-value store and distributed search prompts are reported."
+    },
+    {
+      "topic": "Design: Messaging & Async",
+      "weight": 0.45,
+      "why": "Batching queues, messaging at 100M DAU, telemetry pipelines."
     },
     {
       "topic": "Linked List",
-      "weight": 0.5,
-      "why": "The LRU cache (hash map plus doubly linked list) is the base of a reported onsite question that is extended to memoization and crash durability."
+      "weight": 0.4,
+      "why": "LRU cache (hashmap plus doubly linked list) is a reported phone-screen question."
     },
     {
-      "topic": "Tries",
-      "weight": 0.3,
-      "why": "The in-memory DB has prefix-scan levels and a hashtag autocomplete title was reported. Evidence for a trie specifically is thin, so the weight is moderate."
+      "topic": "Stack",
+      "weight": 0.4,
+      "why": "The profiler / function-event problem and Exclusive Time of Functions in the dataset use call-stack processing."
+    },
+    {
+      "topic": "Design: Product Systems",
+      "weight": 0.4,
+      "why": "Chat app / Claude chat service, prompt playground, developer APIs."
+    },
+    {
+      "topic": "Design: Foundations",
+      "weight": 0.4,
+      "why": "Overload behavior, backpressure, observability are probed in design and hiring manager rounds."
     },
     {
       "topic": "Binary Search",
-      "weight": 0.2,
-      "why": "Historical, timestamped lookups in the DB OA can use bisect. Otherwise reports say binary search is not asked."
-    },
-    {
-      "topic": "Greedy",
-      "weight": 0.15,
-      "why": "The tokenizer question uses greedy longest-match, but it is a low-confidence report from aggregators only."
-    },
-    {
-      "topic": "Math & Geometry",
-      "weight": 0.15,
-      "why": "Only the low-confidence 'fair coin from biased coin' phone-screen title points here."
+      "weight": 0.25,
+      "why": "Time-based KV lookups with TTL or timestamps loosely map to LC 981; moderate, thin evidence."
     },
     {
       "topic": "Heap / Priority Queue",
+      "weight": 0.2,
+      "why": "Distributed mode/median (infra) and scheduling extensions; thin evidence."
+    },
+    {
+      "topic": "Intervals",
+      "weight": 0.15,
+      "why": "Event start/end processing appears in the profiler-style questions; thin evidence."
+    },
+    {
+      "topic": "Trees",
       "weight": 0.1,
-      "why": "No reports. A candidate said to forget heaps for the OA."
+      "why": "Not reported; low priority."
     },
     {
       "topic": "1-D Dynamic Programming",
       "weight": 0.05,
-      "why": "No DP reported in any source."
+      "why": "No reports of DP; Anthropic is described as 'not leetcode'."
     }
   ],
-  "updated": "2026-11-13T23:40:01",
-  "web_report": "# Anthropic software engineering coding interviews: research report\n\n**About me and the sources.** I'm Claude, and Anthropic makes me. I have no inside knowledge of Anthropic's hiring process or question bank. Everything below comes from public reports.\n\nThe search turned up mostly Blind, Glassdoor, LeetCode Discuss, a few personal posts, and many interview-prep sites (PracHub, FastPrep, LinkJob, AceOffer, Hack2Hire, SpaceComplexity, IGotAnOffer). The prep sites sell prep material and don't always show where their reports came from, so I treat their specific numbers as **lower confidence**. My Reddit searches only returned Blind pages, so there are no Reddit threads here. I also hit the search tool's usage limit, so some leads weren't followed up. Dates are as the sources state them; the most recent reports are from mid-to-late 2026.\n\n---\n\n## 1. Interview format\n\n**Typical pipeline (2025\u20132026 reports).** Several sources describe the same sequence: CodeSignal online assessment \u2192 recruiter call (30 min) \u2192 coding screen (1 hr) \u2192 onsite with about 1 hr coding, 1 hr product/system design, 1 hr hiring manager, 1 hr culture \u2192 references. This is from a senior SWE, Mar 2026 (https://prachub.com/interview-experiences/anthropic-senior-software-engineer-interview-experience-referral-product-focused-system-design-and-an-850k-offer). The OA \u2192 recruiter \u2192 phone screen order matches a Feb 2026 LeetCode Discuss post (https://leetcode.com/discuss/post/7559983/). Some candidates have the recruiter call before the CodeSignal link (https://spacecomplexity.ai/blog/anthropic-phone-screen-interview).\n\n**Online assessment (CodeSignal)**\n- 90 minutes. One project in 4 levels; each level unlocks after you pass the previous level's tests and usually forces a refactor. A candidate who failed the OA described it as \"a 4-level challenge\" and said you have to \"completely forget about Big O\" to finish in time. That post is about 21 months old, so older than 12 months (https://blog.goncharov.page/i-failed-my-anthropic-interview-and-came-to-tell-you-all-about-it-so-you-dont-have-to).\n- Blind, Oct 2025: someone who failed twice said \"No leet code though in that round\u2026 4 rounds of things that build on top of each other,\" and that the time pressure is \"insane\" (https://www.teamblind.com/post/anthropic-interview-szdhw35i).\n- Glassdoor names it CodeSignal's \"industry coding framework\" (https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027.htm). SpaceComplexity instead says \"General Coding Framework\" (https://spacecomplexity.ai/blog/anthropic-phone-screen-interview). The two disagree; most sources say Industry.\n- **Possible format change:** a 6-part version was reported in June 2026 (https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide; https://www.hellointerview.com/guides/anthropic/swe). Check your invitation for the exact format.\n- **Scoring (low confidence):**\n  - Blind posters have seen maximum scores of 600 and 1000 (https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl).\n  - One person scored about 770/800 and was still rejected (https://www.teamblind.com/post/anthropic-codesignal-experience-aumkcovi).\n  - SpaceComplexity claims a cutoff around 835/850 but gives no source (https://spacecomplexity.ai/blog/anthropic-phone-screen-interview).\n- Glassdoor (London, senior): test cases come in a read-only file (https://www.glassdoor.com/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm).\n\n**Live coding / phone screen**\n- About 45\u201360 min, with one problem and a series of follow-ups.\n- Platforms reported:\n  - CodeSignal as the IDE (https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx; https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470)\n  - Replit (https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior)\n  - Google Colab, in a 2023 report (https://www.teamblind.com/post/Anthropic-Interview-Experience-Software-Engineer-Role-e7QbATrh)\n- HelloInterview says Anthropic's careers guidance lists Google Meet, CodeSignal and Google Colab (https://www.hellointerview.com/guides/anthropic/swe).\n- If the invite doesn't mention codesignal.com, it's probably a live interview with a person rather than the automated test (https://www.teamblind.com/post/anthropic-interview-advice-854xygjz).\n\n**Onsite (virtual)**\n- 4\u20135 rounds of about 55\u201360 min:\n  - coding (1\u20132 rounds)\n  - system design (1\u20132 rounds)\n  - hiring manager / \"experiences and goals\"\n  - culture/values\n  - sometimes a technical project presentation\n\n  Sources: https://www.tryexponent.com/guides/anthropic-software-engineer-interview; https://igotanoffer.com/en/advice/anthropic-software-engineer-interview. A Staff candidate in Sep 2025 had 5 rounds after one was added (https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior).\n- Two prep sites say failing coding or system design cancels the culture and hiring-manager rounds (https://www.hack2hire.com/blog/anthropic-interview-process-rounds-format-timeline-2026; https://spacecomplexity.ai/blog/anthropic-onsite-interview). I found no first-hand confirmation: **low confidence**.\n- A Blind poster said the \"experiences and goals\" round was a standard hiring-manager interview (https://www.teamblind.com/post/anthropic-final-round-experience-and-goals-8z0msm06).\n\n**Languages**\n- Python dominates the reports. A Blind poster asked whether Python is required and got no real answer (https://www.teamblind.com/post/anthropic-interview-szdhw35i).\n- Another poster says to know \"the language you chose\" and its standard library, and that googling was allowed (https://www.teamblind.com/post/anthropic-interview-advice-854xygjz).\n- The stack-trace problem in the viral video had C++ starter code (https://github.com/ryanhestin/anthropic-challenge). So there seems to be some language choice. **Medium confidence.**\n\n**AI tools**\n- Reports conflict:\n  - A 2026 PR-review round gave candidates Claude for the whole round (https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce).\n  - A Blind commenter described the coding rounds as \"don't use AI for this\" (https://www.teamblind.com/post/anthropic-pre-screen-coding-round-a52n538q).\n- Follow whatever your round's instructions say.\n\n---\n\n## 2. Reported questions\n\nThere are only a handful of distinct problems. The Feb 2026 LeetCode Discuss poster said the question bank \"appears to be very small\" (https://leetcode.com/discuss/post/7559983/).\n\n| # | Question | LeetCode mapping | Description | When / round | Source |\n|---|---|---|---|---|---|\n| 1 | **In-memory database (multi-level)** | No LeetCode equivalent | Key/field store. Levels go SET/GET/DELETE \u2192 filtered or prefix scans \u2192 TTL with timestamps \u2192 history lookups or backup/restore | OA; the most-reported OA problem; versions seen ~2025\u20132026 | https://igotanoffer.com/en/advice/anthropic-interview-questions; https://www.1point3acres.com/interview/problems/a3816a9d-04af-5a4a-8363-20be75018fd2; https://www.fastprep.io/problems/anthropic-in-memory-database-historical-lookup; https://www.fastprep.io/problems/anthropic-in-memory-database-backup-restore; https://www.glassdoor.com/Interview/Design-an-in-memory-database-and-a-function-to-do-odd-CRUD-operations-Written-as-poorly-as-possible-QTN_6453458.htm |\n| 2 | **Banking system** | No LeetCode equivalent | Core logic for a bank app (accounts, transactions, logs), built up in levels | OA; undated Blind post plus NodeFlair | https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl; https://nodeflair.com/companies/anthropic/interviews/senior-software-engineer-l86upq |\n| 3 | **Cloud file storage / file cache** | No LeetCode equivalent | Simulated cloud storage built with the standard library only | OA; AceOffer counts 3 reports, last July 2026 (low confidence) | https://aceoffer.app/interviews/anthropic/coding-questions; https://igotanoffer.com/en/advice/anthropic-interview-questions |\n| 4 | **Web crawler, single-threaded then concurrent** | \u2248 LC 1236 *Web Crawler* + LC 1242 *Web Crawler Multithreaded* (same `htmlParser.getUrls` interface) | BFS over same-hostname URLs, then parallelize with threads, processes or async, terminate cleanly, and discuss scaling across machines | Live screen Sep 2025 (Blind); onsite Sep 2025 (Staff) | https://www.teamblind.com/post/anthropic-interview-experience-0bzxoarx; https://www.teamblind.com/post/anthropic-phone-screen-tfrn5jkm; https://www.1point3acres.com/interview/problems/company/anthropic; https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad; https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior |\n| 5 | **Stack samples \u2192 trace events (sampling profiler)** | No LeetCode equivalent (LC 636 *Exclusive Time of Functions* is related but works in the opposite direction) | Turn timestamped call-stack samples into ordered start/end events. Compare consecutive stacks by common prefix; handle recursion and same-timestamp ordering. A follow-up only emits frames seen for at least N consecutive samples | Phone screen Feb 2026; viral \"leaked\" video Dec 2025; PracHub entry Jul 2025 | https://leetcode.com/discuss/post/7559983/; https://www.teamblind.com/post/leaked-anthropic-interview-xxu4aoca; https://github.com/ryanhestin/anthropic-challenge; https://prachub.com/coding-questions/convert-stack-samples-to-trace-events |\n| 6 | **File deduplication** | Partly LC 609 *Find Duplicate File in System* | Group identical files: by size first, then content hash, streaming large files. Follow-ups cover I/O-bound vs CPU-bound work, more files than fit in memory, and detecting duplicates in real time as files arrive | Phone screen Sep 2025 (Replit); phone screen ~late 2026 (CodeSignal, 45 min, no helper code); onsite Mar 2026. AceOffer says it is the most reported question (53\u00d7, last seen Sep 2026; low confidence) | https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior; https://www.hack2hire.com/forum/6a8ec028cddc54478ddf3470; https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read; https://aceoffer.app/interviews/anthropic/coding-questions |\n| 7 | **LRU cache: memoization decorator, then crash-durable** | Base is LC 146 *LRU Cache*; the extensions have no equivalent | Extend a given Python LRU or memoize decorator (including building canonical cache keys), then make it survive a crash with no data loss, using disk persistence or a WAL | Added onsite round Sep 2025; AceOffer 12\u00d7, last Jul 2026 | https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior; https://www.linkjob.ai/interview-questions/anthropic-coding-interview/; https://aceoffer.app/interviews/anthropic/coding-questions |\n| 8 | **Tokenizer** (greedy, vocab \u2192 IDs) | No LeetCode equivalent | Turn text into token IDs from a vocabulary dictionary, greedy longest match | Undated, aggregators only: **low confidence** | https://aceoffer.app/interviews/anthropic/coding-questions; https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad |\n| 9 | **Image processing with PIL** | No LeetCode equivalent | Grayscale, scale and resize images with PIL | Phone screen, Mar 2026 (one report) | https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read |\n| 10 | **Fair coin from a biased coin** | No direct equivalent (similar in spirit to LC 470) | Simulate a fair coin flip using a biased coin | Phone screen, title only: **low confidence** | https://prachub.com/companies/anthropic; https://www.1point3acres.com/interview/problems/company/anthropic |\n| 11 | Hashtag autocomplete; stock-price agent with a tool-calling loop; global mode across distributed shards | Unknown; autocomplete may resemble LC 642 | Titles only | Undated: **low confidence** | https://www.1point3acres.com/interview/problems/company/anthropic |\n| 12 | **Review and improve pull requests (TypeScript repo)** | No LeetCode equivalent | See section 3 | Onsite, Apr\u2013Jun 2026 | https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce |\n\n**Conflict on question 6 vs 7.** LinkJob says the \"Q2\" slot changed from file dedup to LRU cache after Sep 2025 (https://www.linkjob.ai/interview-questions/anthropic-coding-interview/). Hack2Hire and AceOffer still report file dedup in late 2026. Prepare both.\n\n**System design prompts** (not coding, listed for completeness):\n- 1-on-1 chat (https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read; https://www.glassdoor.com/Interview/Anthropic-Interview-Questions-E8109027.htm)\n- Model-weight download/deployment service (https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce)\n- Batch inference API (https://www.tryexponent.com/guides/anthropic-software-engineer-interview)\n\n---\n\n## 3. Practical / non-LeetCode rounds\n\n- **Progressive OA build.** You write one class with an exact public API. Each level adds requirements, such as scans, TTL/timestamps, history lookups, or backup/restore and compression. Hidden or provided tests grade it, and later levels usually make you refactor earlier code. Sources: Goncharov blog, IGotAnOffer, and the FastPrep problems linked in section 2.\n- **Concurrency extension.** The web crawler starts single-threaded, and most of the round is making it concurrent. You need thread-safe visited/queue state, reliable termination when all work is done, and a discussion of threads vs processes vs async and of crawling across multiple machines (https://www.1point3acres.com/interview/problems/company/anthropic; https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad). InterviewingIO says concurrency comes up in several rounds (https://interviewing.io/anthropic-interview-questions).\n- **Real-systems follow-ups.** File dedup goes from batch processing to \"more files than fit in memory\" to real-time detection. The LRU question goes from a cache to crash-durable persistence (Hack2Hire, LinkJob, linked above).\n- **PR review round (new in 2026).** You get four pull requests in a repository you haven't seen, with Claude available. In the general SWE version you pick one PR, improve it, and push an update. FastPrep also notes at least six 2026 onsite reports of other formats: system design rounds where you critique an existing design doc, and coding rounds that start from given code containing a bug (https://www.fastprep.io/experience/2026-anthropic-software-engineer-onsite-pr-review-round-what-it-tests-2-experien-57w38tp2ce). This rests on 2 candidate reports: **medium-low confidence.**\n- **Older take-home (over 12 months ago, possibly a research-leaning role).** A 5-hour take-home exploring the Anthropic API, plus a review session (https://blog.goncharov.page/i-failed-my-anthropic-interview-and-came-to-tell-you-all-about-it-so-you-dont-have-to).\n\n---\n\n## 4. Topic emphasis\n\n**Frequent**\n- Stateful class or API design that evolves through levels (OA)\n- Hash maps and sets\n- BFS / graph traversal (crawler)\n- Concurrency: threads, locks, queues, async\n- Hashing and file I/O (dedup)\n- Caching / LRU and persistence\n- Stack and prefix comparison (profiler question)\n- String handling\n- Scale follow-ups\n\nThese fit a Blind summary that the questions involve \"real world stuff like IO, concurrency, string manipulation\" (https://www.teamblind.com/post/anthropic-interview-advice-854xygjz).\n\n**Rare or absent**\n- I found no reports of DP, heaps, binary search, or advanced graph algorithms.\n- Goncharov said to forget about \"heaps, binary searches, and the like\" for the OA.\n- A 2023 Blind post noted \"less emphasis on hard core DS/A knowledge\" (https://www.teamblind.com/post/Anthropic-Interview-Experience-Software-Engineer-Role-e7QbATrh).\n\nThis conclusion comes from the absence of reports, so it is **medium-low confidence**.\n\n**Difficulty perception is mixed.**\n- Some call the onsite coding \"not leetcode and it's insane\" (https://www.teamblind.com/post/anthropic-interview-szdhw35i).\n- Others describe LC easy-to-medium multi-step problems (2023 Blind), or say the problems \"weren't hard, but there was a lot of code to write\" (Staff, Sep 2025).\n\n---\n\n## 5. Recurring advice\n\n1. **The OA is a speed test.** A Blind poster's update: \"it absolutely is a speed test\" (https://www.teamblind.com/post/anthropic-codesignal-interview-gdclgwkl). Code fast, and save polish for later.\n2. **Edge-case correctness matters.** A near-perfect score (about 770/800) was still rejected (https://www.teamblind.com/post/anthropic-codesignal-experience-aumkcovi).\n3. **Practice the known question bank.** The LeetCode Discuss poster prepared the known questions and got one of them (https://leetcode.com/discuss/post/7559983/).\n4. **Know your language's standard library well.** For Python that means threading, concurrent.futures, asyncio, hashlib, os/pathlib, and collections (https://www.teamblind.com/post/anthropic-interview-advice-854xygjz). The 2023 Blind post also says to brush up on Python and basic systems knowledge.\n5. **Expect follow-ups after the first solution.** Plan for concurrency, scale, durability and real-time processing (Hack2Hire forum; 1point3acres).\n6. **Take the culture/values round seriously.** Reports call it the hardest part. Prepare \"why Anthropic\" with a specific value and a real example, plus your views on AI safety (https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-onsite-loop-with-a-1-on-1-chat-system-design-file-dedup-coding-and-a-culture-round-i-couldnt-read; https://www.teamblind.com/post/anthropic-interview-szdhw35i; https://interviewing.io/anthropic-interview-questions). The recruiter call also covers mission and values (LeetCode Discuss).\n7. **Expect uneven candidate experience.** Reports include ghosting, passive interviewers, and rejections without feedback. Glassdoor SWE reviews are about 30% positive, with difficulty 3.6/5 (https://www.glassdoor.com/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm; https://www.teamblind.com/post/anthropic-interview-megathread-6estt896).\n\n**What I couldn't verify:**\n- Reddit threads (none came back in search)\n- Anthropic's official guidance on AI use in interviews (I hit the search limit before finding it)\n- Where the prep sites' report counts come from\n\nCheck your invitation emails. Per a 2023 Blind report, the email tells you exactly what to prepare.",
-  "web_status": "ok \u2014 98 sources"
+  "updated": "2026-11-14T12:47:53",
+  "web_report": "# How Anthropic interviews mid-level (2\u20135 yrs) software engineers \u2014 research report\n\n**Before you rely on this:**\n- **Almost nothing here is specific to mid-level.** Public reports are usually just labeled \"Software Engineer.\" The labeled ones are mostly Senior or Staff, and I've marked those. Treat level-specific statements as low confidence.\n- **I hit the search tool's limit after about 10 queries.** That stopped me from searching Reddit (r/leetcode, r/cscareerquestions) and LeetCode Discuss directly, and none of those threads showed up in the searches I did run.\n- **Where the evidence comes from.** First-hand sources are Glassdoor, Blind, PracHub write-ups and one Exponent write-up. Prep companies (IGotAnOffer, Aced/Exponent, HelloInterview, DesignGurus, InterviewQuery, TrueInterview) summarize candidate reports, so they count as second-hand. Dates are relative to page timestamps, which run up to about Sept 2026.\n\n---\n\n## 1. The interview loop\n\nThe order varies somewhat between reports. This is the most common sequence.\n\n| # | Stage | Length / platform | What it assesses | Sources |\n|---|---|---|---|---|\n| 0 | Resume screen / application | \u2014 | \u2014 | https://igotanoffer.com/en/advice/anthropic-software-engineer-interview |\n| 1 | **Recruiter screen**, sometimes split into two calls | 15\u201330 min | Why Anthropic, background, AI safety views, level, logistics. A Glassdoor Senior candidate (NY) said \"why do you want to join\" was a main question. interviewing.io says strong candidates fail here because they \"haven't done the reading.\" | https://trueinterview.io/study/anthropic-software-engineer-interview-process ; https://www.glassdoor.com/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm ; https://interviewing.io/anthropic-interview-questions |\n| 2 | **CodeSignal online assessment** (CodeSignal calls this format the \"Industry Coding Assessment\"). Some candidates get a live technical screen instead. | 90 min, one stateful system built up over 4 levels, usually in Python with the standard library. You must pass every test at one level to unlock the next. Some report a six-part version. The live alternative is 60\u201390 min in Google Colab with an interviewer. | Writing practical code fast, reading specs carefully, extensibility | https://www.hellointerview.com/guides/anthropic/swe ; https://interviewing.io/anthropic-interview-questions ; https://trueinterview.io/study/anthropic-software-engineer-interview-process ; https://www.aced.io/guides/anthropic-software-engineer-interview |\n| 3 | **Technical phone screen** (live coding). Reported in addition to the OA in some loops. | ~60 min | Practical coding with follow-ups. Examples: LRU cache, web crawler. | https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite |\n| 4 | **Hiring manager screen** | 45\u201360 min. May include code review. | Architectural reasoning (what fails first under load, observability), judgment, team fit | https://igotanoffer.com/en/advice/anthropic-interview-questions ; https://www.designgurus.io/blog/anthropic-interview-process |\n| 5 | **Virtual onsite**, Google Meet | 4\u20135 rounds of ~55 min. Some say it's split over two days with 7\u20139 rounds in total. | See the onsite rounds below. | https://igotanoffer.com/en/advice/anthropic-software-engineer-interview ; https://www.designgurus.io/blog/anthropic-interview-process |\n| 6 | References + team matching | 2\u20134 weeks | Team matching happens after the onsite, not before. | https://interviewing.io/anthropic-interview-questions |\n\n**Onsite rounds.** One generic SWE candidate (Mar 2026) listed every round: coding (web crawler), system design (batching GPU requests), project deep dive, a culture round with \"nonstop follow-up questions,\" and a hiring manager round (most impactful project plus standard behavioral questions). https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite\n\n- **Coding:** practical problems rather than LeetCode. https://www.aced.io/blog/anthropic-interview-process\n- **System design:** see section 4.\n- **Project deep dive:** walk through a past project in detail.\n- **Culture / values:**\n  - Two interviewers, one asking and one shadowing. They probe ethics and moral conflicts 3\u20134 follow-ups deep. Aced calls it the round with the highest failure rate. https://www.aced.io/blog/anthropic-interview-process\n  - A Senior/L5 Safeguards candidate said non-technical staff ran it and it felt \"almost like a therapy session.\" https://www.tryexponent.com/experiences/anthropic-senior-software-engineer-interview-2ffa5f\n- **Hiring manager:** behavioral questions and impact.\n\n**Coding-round rules.** One Glassdoor Senior reviewer said you could use your local environment and the internet, but no AI assistants. The same page says Anthropic gives no feedback as a policy. https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm\n\n**How the loop differs by level and team:**\n- **Staff+:** Blind commenters (~3 weeks ago) disagree on whether coding was dropped. Some had no coding round; others had coding as recently as two weeks earlier. https://www.teamblind.com/post/anthropic-no-coding-interview-anymore-wm66qjrz\n- **Staff, downleveled:** one Staff candidate admitted they'd seen the crawler question before, got an extra coding round, and was downleveled to Senior. https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior\n- **Team flavor:** TrueInterview says there is one SWE loop, with problems tilted toward the hiring team (inference designs for infra teams, product designs for full-stack). https://trueinterview.io/study/anthropic-software-engineer-interview-process\n- **Infra roles:** one infra-oriented candidate's onsite included distributed coding and hardware reasoning. https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning\n- **Mid-level specifically:** no source found.\n\n## 2. Reported coding questions\n\n| Question | LeetCode mapping | Description | When | Source |\n|---|---|---|---|---|\n| In-memory key-value database (OA) | No direct equivalent (loosely LC 981 Time Based Key-Value Store) | SET/GET/DELETE, then filtered scans, TTL timestamps, file compression | 2026 | https://igotanoffer.com/en/advice/anthropic-interview-questions ; https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide |\n| Banking system / banking in-memory DB with logs | No direct equivalent (loosely LC 2043 Simple Bank System) | Bank with multiple transaction types plus a log | ~1 yr ago (Senior); ~6 mo | https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm ; https://interviewing.io/anthropic-interview-questions |\n| Task management system with dependencies (OA) | No direct equivalent (topological sort, as in LC 207/210) | Stateful task manager | 2026 | https://www.interviewquery.com/guides/anthropic-software-engineer |\n| Other OA themes: file system simulator, package manager, build system, text editor, recipe manager | No LeetCode equivalent | Same 4-level pattern | 2026, aggregated (medium\u2013low confidence) | https://www.sundeepteki.org/advice/anthropic-codesignal-assessment-guide ; https://trueinterview.io/study/anthropic-software-engineer-interview-process |\n| **Web crawler**, single-threaded then concurrent | LC 1236 Web Crawler \u2192 LC 1242 Web Crawler Multithreaded | Find all URLs reachable from a start URL on the same host, then add multiple workers | Mar\u2013Jul 2026. AceOffer counts it as most reported (60\u00d7, last seen July 2026). | https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad ; https://aceoffer.app/interviews/anthropic/coding-questions ; https://prachub.com/companies/anthropic |\n| **LRU cache, Python-decorator style** | LC 146 LRU Cache, plus extensions | Works like `functools.lru_cache`: generate a hashable key from `*args/**kwargs`, then restore the cache after a crash (the candidate used a write-ahead log, WAL). Staff variant: fix a given implementation, then make it persistent. Another report asked for thread safety and error handling. | Mar 2026 | https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite ; https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior ; https://www.interviewquery.com/guides/anthropic-software-engineer |\n| File deduplication | Loosely LC 609 Find Duplicate File in System | Find duplicate files, at scale | 2026 (Staff) | https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior ; https://aceoffer.app/interviews/anthropic/coding-questions |\n| Sampled call stacks \u2192 function events (profiler) | No LeetCode equivalent | Turn stack samples into start/end events; handle recursion and limited history | Mar 2026 (infra role) | https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning |\n| Distributed mode / median | No LeetCode equivalent | Compute the mode and median using supplied messaging interfaces, minding partitioning and communication cost | Mar 2026 (infra) | same as above |\n| Biased coin (phone screen) | Unknown | Title only (low confidence) | 2026 | https://prachub.com/companies/anthropic |\n| Peer-to-peer model downloader; a \"single-threaded coding constraint\" screen | No LeetCode equivalent | Titles only (low confidence) | 2026 | https://prachub.com/companies/anthropic |\n| VLIW / TPU kernel optimization take-home | No LeetCode equivalent | 2\u20134 hours, AI allowed. Performance roles only, not generalist SWE. | 2026 | https://aceoffer.app/interviews/anthropic/coding-questions |\n\n## 3. Practical / non-LeetCode coding rounds\n\nPractical coding is the norm at Anthropic.\n\n- **CodeSignal OA:** one system that grows over 4 levels. A Senior reviewer said level 1 was trivial and level 2 was \"like a leetcode hard,\" which you must pass to reach levels 3\u20134. https://www.glassdoor.ca/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm\n  - A Glassdoor (London) reviewer said the tests come in a read-only file. https://www.glassdoor.com/Interview/Anthropic-Senior-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,34.htm\n  - The main constraint is time; you need to keep mistakes to a minimum. https://www.glassdoor.co.uk/Interview/Anthropic-Interview-Questions-E8109027.htm\n- **Concurrency:** the web crawler moves from single-threaded to multi-worker. https://gist.github.com/nito-Q/3b0e09676de3b1176f85e2db3d09a9ad\n- **Persistence / durability:** the follow-up to the LRU cache is crash recovery and serialization. https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite\n- **Modifying given code:** the Staff LRU variant hands you an implementation to fix and extend. https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior\n- **Code review:**\n  - Possible in the hiring manager round. https://www.designgurus.io/blog/anthropic-interview-process\n  - One PracHub onsite write-up is titled \"Reviewing and Improving Pull Requests with Claude Code.\" I only saw the title (low confidence). https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-distributed-coding-ai-safety-and-hardware-reasoning\n  - Critiquing a design document is also reported. https://trueinterview.io/study/anthropic-software-engineer-interview-process\n\n## 4. System design prompts\n\n| Prompt | When | Source |\n|---|---|---|\n| **Inference batching:** a single GPU takes up to 100 inputs per batch while users wait synchronously. Most frequently reported. | ~2 wks ago; also a Mar 2026 onsite (\"batch GPU requests\") | https://www.tryexponent.com/questions?company=anthropic&type=system-design ; https://prachub.com/interview-experiences/anthropic-software-engineer-interview-experience-oa-a-python-lru-cache-phone-screen-and-rejection-after-a-full-onsite |\n| End-to-end batching system for LLM queries | ~4 mo | https://www.tryexponent.com/questions?company=anthropic&type=system-design |\n| Token-generation service at 100k RPS | ~8 mo | same |\n| File cache system; key-value store; web crawler | 7\u20138 mo; ~2 wks | same |\n| Design a chat app (system design screen) | Jul 2026 | https://www.glassdoor.co.uk/Interview/Anthropic-Interview-Questions-E8109027.htm |\n| Messaging at 100M daily active users; telemetry design (tech screens, both rejected) | 2026 | https://prachub.com/companies/anthropic |\n| Distributed search over 1B docs at 1M QPS; Design the Claude chat service; APIs for developers to access the models | 2026 (aggregated) | https://igotanoffer.com/en/advice/anthropic-interview-questions ; https://www.designgurus.io/answers/detail/what-to-expect-in-the-anthropic-system-design-interview |\n| Model / file distribution to thousands of machines; prompt playground | 2026 (aggregated) | https://www.aced.io/blog/anthropic-system-design-interview ; https://trueinterview.io/study/anthropic-software-engineer-interview-process |\n\n**Format.** A Senior candidate was handed a Google Doc and mostly watched while presenting their own screen. https://www.tryexponent.com/experiences/anthropic-senior-software-engineer-interview-2ffa5f\n\n**What's expected.** Treat each prompt as a classic infrastructure problem: queuing, batching, routing, what happens on overload. One candidate called the batching question \"a pure infra question at the end of the day.\" https://www.aced.io/blog/anthropic-system-design-interview\n\n**Depth at mid-level:** no source addresses this (low confidence). At least one 2026 generic-SWE screen included system design.\n\n## 5. Topic emphasis\n\n1. **Stateful system design in code:** hash maps, TTL, ordered scans. This is the OA's core.\n2. **Caching:** LRU, hashable keys, persistence.\n3. **Graph traversal (BFS/DFS) plus concurrency:** threads, async, worker pools.\n4. **Stacks and event processing:** the profiler problem.\n5. **Distributed aggregation:** for infra teams.\n\nClassic LeetCode grinding comes up less. One Blind commenter summed it up as \"OpenAI leetcode, anthropic not leetcode,\" though others still found it hard. https://www.teamblind.com/post/do-openai-and-anthropic-still-expect-you-to-manually-leetcode-mbzzci4i\n\n## 6. Advice that recurs across reports\n\n- **Prepare a real \"Why Anthropic\" and a position on its values.**\n  - The recruiter sends culture documents, and the culture round opens with your reading of them. https://www.aced.io/guides/anthropic-software-engineer-interview\n  - Expect to be asked for an honest critique of Anthropic's direction. https://www.aced.io/blog/anthropic-interview-process\n  - One Blind commenter said the questions resemble Amazon's Leadership Principles questions (low confidence). https://www.teamblind.com/post/anthropic-culture-interview-syng3rar\n- **Expect layered follow-ups.** Narrate your thinking and treat the round as collaboration. https://igotanoffer.com/en/advice/anthropic-software-engineer-interview\n- **Practice 90-minute, 4-level simulators against the clock:** bank, database, task manager. https://trueinterview.io/study/anthropic-software-engineer-interview-process\n- **Keep code running.** One candidate spent so long on serialization that their code never ran. https://prachub.com/interview-experiences/anthropic-staff-software-engineer-interview-experience-a-surprise-extra-round-then-a-downlevel-to-senior\n- **Memorized answers can backfire.** Interviewers may watch for over-rehearsed solutions https://interviewing.io/anthropic-interview-questions, and the Staff candidate who said they'd seen the crawler before got an extra round.\n- **You don't need ML experience for SWE roles.** https://interviewing.io/anthropic-interview-questions\n- **Expect a hard, sometimes fast process.**\n  - Blind posters called it \"the HARDEST\" loop they'd done, and one finished in 8 working days. https://www.teamblind.com/post/anthropic-interview-megathread-6estt896\n  - Glassdoor rates difficulty 3.6/5, with a 30% positive experience rate. https://www.glassdoor.com/Interview/Anthropic-Software-Engineer-Interview-Questions-EI_IE8109027.0,9_KO10,27.htm",
+  "web_status": "ok \u2014 96 sources"
 }

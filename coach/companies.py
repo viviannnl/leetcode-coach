@@ -263,49 +263,81 @@ def problem_mastery(state: State, title: str, today: date) -> float:
     return round(m, 3)
 
 
-def readiness(
-    state: State,
-    profile: dict[str, Any],
-    topic_progress: dict[str, float],
-    today: date,
-) -> dict[str, Any]:
-    """Score how ready the user is for this company (0-100).
+def _weighted_mastery(state: State, items: list[dict[str, Any]], today: date) -> tuple[float, float]:
+    """(weighted mastery 0-1, total weight) over profile problems."""
+    num = den = 0.0
+    for p in items:
+        w = max(float(p.get("weight", 0.0)), 0.05)
+        num += w * problem_mastery(state, p["title"], today)
+        den += w
+    return (num / den if den else 0.0), den
 
-    - **Problem coverage**: frequency-weighted mastery over the company's own
-      problems — "have you practised what they actually ask?"
-    - **Topic strength**: the company's topic emphasis weighted by the user's
-      progress on each roadmap topic — "could you handle a question you
-      haven't seen in the areas they care about?"
 
-    Overall is the mean of the two, so neither grinding the company list nor
-    ignoring it scores well alone.
+def readiness(state: State, profile: dict[str, Any], roadmap: Any, today: date) -> dict[str, Any]:
+    """Score how ready the user is for this company's loop (0-100).
+
+    Each practice track gets a score:
+      - algorithms: mean of *problem coverage* (frequency-weighted mastery of
+        the company's coding problems) and *topic strength* (company topic
+        emphasis × the user's mastery of each topic).
+      - practical: weighted mastery of the company's practical tasks.
+      - system_design: mastery of the company's reported design prompts, blended
+        with the design curriculum so prompts nobody reported still count.
+    Each interview round takes its track's score; overall is the round-weighted
+    mean over rounds the coach can train. Rounds with no practice track
+    (behavioral, code review…) are reported as untracked, not guessed.
     """
     problems = profile.get("problems", [])
-    weighted = 0.0
-    total_w = 0.0
-    per_problem = []
-    for p in problems:
-        w = max(float(p.get("weight", 0.0)), 0.05)
-        m = problem_mastery(state, p["title"], today)
-        weighted += w * m
-        total_w += w
-        per_problem.append({"title": p["title"], "mastery": m, "weight": w})
-    coverage = (weighted / total_w) if total_w else 0.0
+    by_kind = {k: [p for p in problems if p.get("kind", "leetcode") == k] for k in ("leetcode", "practical", "design")}
 
-    topics = profile.get("topic_weights", [])
-    t_weighted = 0.0
-    t_total = 0.0
+    coverage, cov_w = _weighted_mastery(state, by_kind["leetcode"], today)
+
+    topic_progress: dict[str, float] = {}
+    for topic in roadmap.topics():
+        probs = [p for p in roadmap.problems if p.topic == topic]
+        topic_progress[topic] = sum(problem_mastery(state, p.title, today) for p in probs) / len(probs)
+    t_num = t_den = 0.0
     per_topic = []
-    for t in topics:
+    for t in profile.get("topic_weights", []):
         w = float(t.get("weight", 0.0))
         prog = topic_progress.get(t["topic"], 0.0)
-        t_weighted += w * prog
-        t_total += w
+        t_num += w * prog
+        t_den += w
         per_topic.append({"topic": t["topic"], "weight": w, "progress": round(prog, 3)})
-    strength = (t_weighted / t_total) if t_total else 0.0
+    strength = t_num / t_den if t_den else 0.0
+    algo_parts = [x for x, n in ((coverage, cov_w), (strength, t_den)) if n]
+    algorithms = sum(algo_parts) / len(algo_parts) if algo_parts else 0.0
 
-    parts = [x for x, n in ((coverage, total_w), (strength, t_total)) if n]
-    overall = sum(parts) / len(parts) if parts else 0.0
+    practical, prac_w = _weighted_mastery(state, by_kind["practical"], today)
+
+    design_curriculum = [p for p in roadmap.problems if p.track == "system_design" and p.source == "design"]
+    curriculum = (
+        sum(problem_mastery(state, p.title, today) for p in design_curriculum) / len(design_curriculum)
+        if design_curriculum else 0.0
+    )
+    reported, rep_w = _weighted_mastery(state, by_kind["design"], today)
+    design = 0.6 * reported + 0.4 * curriculum if rep_w else curriculum
+
+    tracks = {"algorithms": algorithms, "practical": practical if prac_w else None, "system_design": design}
+
+    rounds = profile.get("rounds") or [
+        # Profiles from before loop-aware intel: treat the loop as coding only.
+        {"name": "Coding", "track": "algorithms", "weight": 0.5, "description": ""},
+        {"name": "Practical coding", "track": "practical", "weight": 0.5, "description": ""},
+    ]
+    per_round = []
+    num = den = untracked = 0.0
+    for r in rounds:
+        score = tracks.get(r["track"])
+        if r["track"] == "practical" and score is None:
+            score = algorithms  # no practical tasks found: coding practice is the closest proxy
+        per_round.append({**r, "score": None if score is None else round(score * 100)})
+        if score is None:
+            untracked += r["weight"]
+        else:
+            num += r["weight"] * score
+            den += r["weight"]
+    overall = num / den if den else 0.0
 
     weakest = sorted(
         (t for t in per_topic if t["weight"] >= 0.4),
@@ -314,9 +346,12 @@ def readiness(
 
     return {
         "overall": round(overall * 100),
+        "rounds": per_round,
+        "untracked_weight": round(untracked, 3),
+        "tracks": {k: (None if v is None else round(v * 100)) for k, v in tracks.items()},
         "problem_coverage": round(coverage * 100),
         "topic_strength": round(strength * 100),
-        "problems": per_problem,
+        "problems": [{"title": p["title"], "mastery": problem_mastery(state, p["title"], today)} for p in problems],
         "topics": per_topic,
         "weak_spots": [t["topic"] for t in weakest if t["progress"] < 0.7],
     }

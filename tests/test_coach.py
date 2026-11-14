@@ -100,6 +100,155 @@ class TestPipeline(Base):
             self.coach.generate_campaign()
 
 
+class TestLevelsAndRounds(Base):
+    def test_level_is_stored_and_validated(self) -> None:
+        t = self.coach.set_target("Anthropic", "2026-12-25", level="senior", role="Software Engineer, Infra")
+        self.assertEqual((t.level, t.level_label, t.role), ("senior", "Senior", "Software Engineer, Infra"))
+        with self.assertRaises(ValueError):
+            self.coach.set_target("Anthropic", level="principal-wizard")
+
+    def test_level_change_needs_new_research_and_plan(self) -> None:
+        self.coach.set_target("Anthropic", "2026-12-25", level="new_grad")
+        self.coach.refresh_company()
+        self.coach.generate_campaign()
+        self.assertFalse(self.coach.needs_research())
+        self.coach.set_target("Anthropic", "2026-12-25", level="senior")
+        self.assertTrue(self.coach.needs_research())
+        self.assertIsNone(self.coach.load_campaign())
+        self.assertTrue(self.coach.dashboard()["company"]["stale_level"])
+
+    def test_rounds_follow_level_and_weights_sum_to_one(self) -> None:
+        self.coach.set_target("Anthropic", "2026-12-25", level="new_grad")
+        junior = self.coach.refresh_company()["rounds"]
+        self.assertNotIn("system_design", {r["track"] for r in junior})
+        self.coach.set_target("Anthropic", "2026-12-25", level="senior")
+        senior = self.coach.refresh_company()["rounds"]
+        self.assertIn("system_design", {r["track"] for r in senior})
+        for rounds in (junior, senior):
+            self.assertAlmostEqual(sum(r["weight"] for r in rounds), 1.0, places=2)
+
+    def test_readiness_reports_untracked_rounds(self) -> None:
+        self.coach.set_target("Anthropic", "2026-12-25", level="senior")
+        self.coach.refresh_company()
+        r = self.coach.dashboard()["readiness"]
+        behavioral = [x for x in r["rounds"] if x["track"] == "behavioral"]
+        self.assertTrue(behavioral and behavioral[0]["score"] is None)
+        self.assertGreater(r["untracked_weight"], 0)
+
+    def test_campaign_allocates_time_by_track(self) -> None:
+        self.coach.set_target("Anthropic", "2026-12-25", level="senior")
+        self.coach.refresh_company()
+        weeks = self.coach.generate_campaign()["weeks"]
+        tracks = {a["track"] for w in weeks for a in w["allocation"]}
+        self.assertIn("system_design", tracks)
+
+
+class TestDesignSessions(Base):
+    def setUp(self) -> None:
+        super().setUp()
+        self.coach.set_target("Anthropic", "2026-12-25", level="senior")
+
+    def test_full_session_records_an_attempt(self) -> None:
+        s = self.coach.start_design_session("design a rate limiter")
+        self.assertEqual(s["title"], "Design a Rate Limiter")
+        self.assertEqual(s["transcript"][0]["role"], "interviewer")
+        s = self.coach.reply_design_session(s["id"], "Requirements: 10k QPS. Token bucket in a sharded cache, replicas, trade-off latency vs consistency.")
+        self.assertEqual([m["role"] for m in s["transcript"]], ["interviewer", "candidate", "interviewer"])
+        done = self.coach.finish_design_session(s["id"])
+        self.assertEqual(done["status"], "finished")
+        self.assertEqual(len(done["scorecard"]["scores"]), 5)
+        rec = self.store.load().records["Design a Rate Limiter"]
+        self.assertEqual(rec.attempts[-1].outcome, done["scorecard"]["outcome"])
+        self.assertIsNone(self.coach.active_design_session())
+        self.assertEqual(self.coach.dashboard()["design_scorecards"][0]["title"], "Design a Rate Limiter")
+
+    def test_hints_are_counted(self) -> None:
+        s = self.coach.start_design_session("Design a URL Shortener")
+        s = self.coach.reply_design_session(s["id"], "I'm stuck, not sure where to start")
+        self.assertEqual(s["hints"], 1)
+
+    def test_guards(self) -> None:
+        with self.assertRaises(RuntimeError):
+            self.coach.start_design_session("Two Sum")  # not a design problem
+        s = self.coach.start_design_session("Design a URL Shortener")
+        self.assertEqual(self.coach.start_design_session("Design a URL Shortener")["id"], s["id"])  # resumes
+        with self.assertRaises(RuntimeError):
+            self.coach.start_design_session("Design a Chat System")  # one at a time
+        with self.assertRaises(RuntimeError):
+            self.coach.finish_design_session(s["id"])  # no answer yet
+        with self.assertRaises(ValueError):
+            self.coach.load_design_session("../../etc/passwd")
+        self.coach.abandon_design_session(s["id"])
+        self.assertIsNone(self.coach.active_design_session())
+
+
+class TestLeetCodeSync(Base):
+    PROFILE = {
+        "username": "vivian",
+        "solved": {"All": 120, "Easy": 60, "Medium": 55, "Hard": 5},
+        "tags": [{"tag": "Array", "solved": 70}, {"tag": "Hash Table", "solved": 40}],
+        "recent": [
+            {"title": "Two Sum", "slug": "two-sum", "timestamp": 1763000000, "date": "2026-11-13"},
+            {"title": "Two Sum II - Input Array Is Sorted", "slug": "two-sum-ii-input-array-is-sorted", "timestamp": 1763050000, "date": "2026-11-13"},
+            {"title": "Some Obscure Puzzle", "slug": "some-obscure-puzzle", "timestamp": 1763060000, "date": "2026-11-13"},
+        ],
+    }
+
+    def setUp(self) -> None:
+        super().setUp()
+        from coach import leetcode
+        self.lc = leetcode
+        p = mock.patch.object(leetcode, "fetch_profile", return_value=self.PROFILE)
+        self.fetch = p.start()
+        self.addCleanup(p.stop)
+
+    def test_link_logs_roadmap_solves_and_reports_others(self) -> None:
+        res = self.coach.link_leetcode("@vivian")
+        self.assertEqual(res["added"], ["Two Sum", "Two Sum II Input Array Is Sorted"])  # matched despite punctuation
+        self.assertEqual(res["other"], ["Some Obscure Puzzle"])
+        rec = self.store.load().records["Two Sum"]
+        self.assertEqual((rec.attempts[0].source, rec.attempts[0].outcome), ("leetcode", "solved_independently"))
+        self.assertIsNotNone(rec.next_review)
+        self.assertEqual(self.coach.dashboard()["leetcode"]["solved"]["All"], 120)
+
+    def test_resync_does_not_duplicate(self) -> None:
+        self.coach.link_leetcode("vivian")
+        res = self.coach.sync_leetcode()
+        self.assertEqual(res["added"], [])
+        self.assertEqual(len(self.store.load().records["Two Sum"].attempts), 1)
+
+    def test_recap_replaces_same_day_synced_attempt(self) -> None:
+        coach = Coach(store=self.store, today=date(2026, 11, 13))
+        coach.link_leetcode("vivian")
+        coach.record_feedback("Two Sum took 20 min, I needed a hint.")
+        rec = self.store.load().records["Two Sum"]
+        self.assertEqual(len(rec.attempts), 1)
+        self.assertEqual(rec.attempts[0].outcome, "solved_with_hints")
+        self.assertEqual(rec.attempts[0].source, "")
+
+    def test_bad_username_and_unlink(self) -> None:
+        with self.assertRaises(ValueError):
+            self.coach.link_leetcode("not a name!")
+        self.coach.link_leetcode("vivian")
+        self.coach.unlink_leetcode()
+        self.assertIsNone(self.coach.dashboard()["leetcode"])
+        self.assertIn("Two Sum", self.store.load().records)  # history stays
+
+    def test_planning_syncs_with_cooldown_and_survives_failure(self) -> None:
+        self.coach.link_leetcode("vivian")
+        self.fetch.reset_mock()
+        self.coach.plan_today(30)
+        self.fetch.assert_not_called()  # synced moments ago
+        state = self.store.load()
+        state.leetcode["synced_at"] = "2020-01-01T00:00:00"
+        self.store.save(state)
+        self.fetch.side_effect = self.lc.LeetCodeError("down")
+        plan = self.coach.plan_today(30)  # LeetCode down must not block planning
+        self.assertTrue(plan.items)
+        ctx = self.coach._build_plan_context(*self.coach._require_state(), 30)
+        self.assertEqual(ctx["leetcode_profile"]["solved"]["All"], 120)
+
+
 class TestReadiness(Base):
     def test_mastery_raises_readiness(self) -> None:
         self.coach.set_target("Anthropic", "2026-12-25")

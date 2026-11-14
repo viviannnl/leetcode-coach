@@ -38,6 +38,8 @@ class Attempt:
     used_hint: bool = False
     viewed_solution: bool = False
     notes: str = ""
+    # Where the attempt came from: "" for recaps/sessions, "leetcode" for sync.
+    source: str = ""
 
 
 @dataclass
@@ -73,12 +75,30 @@ class ProblemRecord:
         )
 
 
+LEVELS = {
+    "intern": "Intern",
+    "new_grad": "New grad",
+    "mid": "Mid-level",
+    "senior": "Senior",
+    "staff": "Staff+",
+}
+DEFAULT_LEVEL = "mid"
+
+
 @dataclass
 class Target:
     """The interview the user is preparing for."""
 
     company: str  # display name, e.g. "Anthropic"
     interview_date: str | None = None  # ISO date, e.g. "2026-12-25"
+    level: str = DEFAULT_LEVEL  # key of LEVELS
+    role: str = "Software Engineer"
+    # Optional pasted job posting; sharpens research (level, team, focus).
+    job_posting: str = ""
+
+    @property
+    def level_label(self) -> str:
+        return LEVELS.get(self.level, self.level)
 
 
 @dataclass
@@ -89,6 +109,9 @@ class State:
     target: Target | None = None
     # Typical minutes per day, used to size the multi-week plan.
     daily_minutes: int = 60
+    # Linked public LeetCode profile: {username, synced_at, last_seen_ts,
+    # solved, tags, last_added, last_other}. None when not linked.
+    leetcode: dict[str, Any] | None = None
 
     def record_for(self, title: str, topic: str) -> ProblemRecord:
         rec = self.records.get(title)
@@ -118,8 +141,9 @@ class Store:
             roadmap_id=raw.get("roadmap_id"),
             created=raw.get("created", ""),
             records=records,
-            target=Target(**raw["target"]) if raw.get("target") else None,
+            target=_target_from_dict(raw["target"]) if raw.get("target") else None,
             daily_minutes=raw.get("daily_minutes", 60),
+            leetcode=raw.get("leetcode"),
         )
 
     def save(self, state: State) -> None:
@@ -130,6 +154,7 @@ class Store:
             "records": {title: asdict(rec) for title, rec in state.records.items()},
             "target": asdict(state.target) if state.target else None,
             "daily_minutes": state.daily_minutes,
+            "leetcode": state.leetcode,
         }
         # Write atomically so a crash mid-write can't corrupt history.
         tmp = self.path.with_suffix(".json.tmp")
@@ -137,11 +162,17 @@ class Store:
         tmp.replace(self.path)
 
 
+def _target_from_dict(raw: dict[str, Any]) -> Target:
+    # Older state files predate level/role; unknown keys are ignored.
+    known = Target.__dataclass_fields__
+    return Target(**{k: v for k, v in raw.items() if k in known})
+
+
 def _record_from_dict(raw: dict[str, Any]) -> ProblemRecord:
     return ProblemRecord(
         title=raw["title"],
         topic=raw["topic"],
-        attempts=[Attempt(**a) for a in raw.get("attempts", [])],
+        attempts=[Attempt(**{k: v for k, v in a.items() if k in Attempt.__dataclass_fields__}) for a in raw.get("attempts", [])],
         next_review=raw.get("next_review"),
         interval_days=raw.get("interval_days", 0),
         review_streak=raw.get("review_streak", 0),

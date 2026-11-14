@@ -1,5 +1,5 @@
 /** Sidebar highlight, jumps, landing flash and scroll tracking. */
-import { test, expect, open } from "./fixtures";
+import { test, expect, open, MIDWAY } from "./fixtures";
 
 const SECTIONS = ["today", "plan", "readiness", "intel", "topics", "activity"];
 const current = (page: any) =>
@@ -61,8 +61,10 @@ test("highlight survives a re-render", async ({ page }) => {
 
 test("sidebar counts reflect the data", async ({ page }) => {
   await open(page);
-  await expect(page.locator('[data-nav="today"] .count')).toHaveText("4");
-  await expect(page.locator('[data-nav="plan"] .count')).toHaveText("7w");
-  await expect(page.locator('[data-nav="intel"] .count')).toHaveText("26");
-  await expect(page.locator('[data-nav="activity"] .count')).toHaveText("6 due");
+  const d = MIDWAY;
+  await expect(page.locator('[data-nav="today"] .count')).toHaveText(String(d.today_plan.items.length));
+  await expect(page.locator('[data-nav="plan"] .count')).toHaveText(`${d.campaign.weeks.length}w`);
+  await expect(page.locator('[data-nav="readiness"] .count')).toHaveText(`${d.readiness.overall}%`);
+  await expect(page.locator('[data-nav="intel"] .count')).toHaveText(String(d.company.problems.length));
+  await expect(page.locator('[data-nav="activity"] .count')).toHaveText(`${d.due_reviews.length} due`);
 });

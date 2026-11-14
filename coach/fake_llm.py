@@ -42,6 +42,8 @@ def _guess_topic(title: str, tags: list[str], valid: list[str]) -> str:
 def _mins(difficulty: str, kind: str, topic: str = "") -> int:
     if topic == PRACTICAL_TOPIC:
         return 60
+    if topic.startswith("Design:"):
+        return 30 if kind == "review" else 45
     base = _MINUTES.get(difficulty, 25)
     return max(8, base // 2) if kind == "review" else base
 
@@ -137,10 +139,11 @@ def parse_feedback(context: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def research_company(company: str) -> dict[str, Any]:
+def research_company(target: dict[str, Any]) -> dict[str, Any]:
+    company = target["company"]
     return {
         "notes": (
-            f"[Offline fake research — no web search ran for {company}.]\n"
+            f"[Offline fake research — no web search ran for {company} ({target['level']}).]\n"
             "Set ANTHROPIC_API_KEY and refresh to gather real interview reports."
         ),
         "sources": [],
@@ -178,8 +181,29 @@ def build_company_intel(context: dict[str, Any]) -> dict[str, Any]:
         {"topic": t, "weight": round(0.3 + 0.7 * s / top, 2), "why": "[fake] Share of dataset problems."}
         for t, s in sorted(topic_score.items(), key=lambda kv: -kv[1])
     ]
+    # A plausible loop by level: design and behavioral grow with seniority.
+    level = context.get("level", "")
+    senior = any(k in level for k in ("Senior", "Staff"))
+    junior = any(k in level for k in ("Intern", "New grad"))
+    rounds = [{"name": "Online assessment", "track": "algorithms", "weight": 0.3, "count": 1,
+               "description": "[fake] Timed coding test.", "evidence_urls": []},
+              {"name": "Coding interviews", "track": "algorithms", "weight": 0.4 if junior else 0.25, "count": 2,
+               "description": "[fake] Live coding.", "evidence_urls": []}]
+    if not junior:
+        rounds.append({"name": "System design", "track": "system_design", "weight": 0.35 if senior else 0.2,
+                       "count": 2 if senior else 1, "description": "[fake] Design a service end to end.", "evidence_urls": []})
+    rounds.append({"name": "Behavioral", "track": "behavioral", "weight": 0.15 if senior else 0.1, "count": 1,
+                   "description": "[fake] Past projects and values.", "evidence_urls": []})
+    design_titles = context.get("design_track_titles", [])
+    if not junior:
+        for t in design_titles[:3]:
+            problems.append({"title": t, "kind": "design", "topic": "Design: Foundations", "difficulty": "Medium",
+                             "url": "", "description": "[fake] Common design prompt.", "concepts": [], "weight": 0.5,
+                             "evidence": "[fake] Typical for this level.", "evidence_urls": [],
+                             "from_dataset": False, "from_web": False})
     return {
         "interview_format": "[Offline fake intel] Built from dataset rows only; no web reports.",
+        "rounds": rounds,
         "advice": ["Run a refresh with ANTHROPIC_API_KEY set for real, cited intel."],
         "topic_weights": topic_weights,
         "problems": problems,
@@ -191,7 +215,13 @@ def generate_campaign(context: dict[str, Any]) -> dict[str, Any]:
     end = date.fromisoformat(context["interview_date"])
     per_week = max(3, round(context["minutes_per_day"] * 7 / 35))
     intel = context.get("company_intel") or {}
-    status = {p["title"]: p["status"] for p in context["roadmap"]}
+    catalog = context["catalog"]
+    status = {p["title"]: p["status"] for p in catalog}
+    rounds = intel.get("rounds", [])
+    design_share = sum(r["weight"] for r in rounds if r["track"] == "system_design")
+    covered = sum(r["weight"] for r in rounds if r["track"] in ("algorithms", "practical", "system_design")) or 1
+    design_share /= covered
+    design_queue = [p["title"] for p in catalog if p["track"] == "system_design" and p["status"] != "solved"] if design_share else []
     by_norm = {norm_title(t): t for t in status}
 
     company = [
@@ -199,7 +229,8 @@ def generate_campaign(context: dict[str, Any]) -> dict[str, Any]:
         for p in sorted(intel.get("problems", []), key=lambda p: -p["weight"])
     ]
     company = [t for t in company if t and status[t] != "solved"]
-    core = [p["title"] for p in context["roadmap"] if p["source"] == "roadmap" and p["status"] == "new"]
+    core = [p["title"] for p in catalog if p["source"] == "roadmap" and p["status"] == "new"]
+    company = [t for t in company if t not in design_queue]
     queue: list[str] = []
     for i in range(max(len(company), len(core))):
         for src in (core, company):
@@ -217,11 +248,18 @@ def generate_campaign(context: dict[str, Any]) -> dict[str, Any]:
         else:
             n = max(1, round(per_week * ((stop - start).days + 1) / 7))
             picks = [{"title": queue.pop(0), "kind": "new"} for _ in range(min(n, len(queue)))]
+            if design_queue:
+                picks.append({"title": design_queue.pop(0), "kind": "new"})
             theme, goal = f"Week {len(weeks) + 1}", "Work through the queued problems."
+        budget = context["minutes_per_day"] * ((stop - start).days + 1)
+        allocation = [{"track": "algorithms", "minutes": round(budget * (1 - design_share))}]
+        if design_share:
+            allocation.append({"track": "system_design", "minutes": round(budget * design_share)})
         weeks.append(
             {
                 "start": start.isoformat(),
                 "end": stop.isoformat(),
+                "allocation": allocation,
                 "theme": f"[fake] {theme}",
                 "goal": goal,
                 "focus_topics": [],
@@ -232,4 +270,59 @@ def generate_campaign(context: dict[str, Any]) -> dict[str, Any]:
     return {
         "summary": "[Offline fake campaign] Interleaves the core roadmap with company problems, then reviews.",
         "weeks": weeks,
+    }
+
+
+_FAKE_PROBES = [
+    ("requirements", "Good start. What scale should we design for: requests per second, data size, read/write ratio?"),
+    ("high_level", "Sketch the main components and how a request flows through them."),
+    ("deep_dive", "Let's go deeper on storage. How do you partition the data, and what happens when a node fails?"),
+    ("deep_dive", "Where would you cache, and how do you keep the cache consistent with writes?"),
+    ("wrap_up", "What are the biggest trade-offs in your design, and what would you change at 10x traffic?"),
+]
+
+
+def design_turn(context: dict[str, Any]) -> dict[str, Any]:
+    t = context["transcript"]
+    if not t:
+        return {
+            "reply": f"[Offline interviewer] Let's design: {context['problem']['title'].removeprefix('Design ')}. "
+                     "Start by telling me the requirements you'd confirm.",
+            "phase": "requirements",
+            "hint_given": False,
+        }
+    answers = sum(1 for m in t if m["role"] == "candidate")
+    last = t[-1]["text"].lower()
+    if any(k in last for k in ("stuck", "not sure", "no idea", "hint")):
+        return {"reply": "[Offline interviewer] Hint: think about what's read far more often than it's written.",
+                "phase": "high_level", "hint_given": True}
+    phase, probe = _FAKE_PROBES[min(answers - 1, len(_FAKE_PROBES) - 1)]
+    return {"reply": f"[Offline interviewer] {probe}", "phase": phase, "hint_given": False}
+
+
+_FAKE_RUBRIC = {
+    "Requirements & scope": ("requirement", "scale", "qps", "users", "read", "write"),
+    "API & data model": ("api", "schema", "table", "endpoint", "key"),
+    "High-level architecture": ("service", "load balancer", "database", "queue", "cache"),
+    "Scaling & bottlenecks": ("shard", "partition", "replica", "scale", "bottleneck"),
+    "Trade-offs & communication": ("trade-off", "tradeoff", "consistency", "latency", "because"),
+}
+
+
+def design_score(context: dict[str, Any]) -> dict[str, Any]:
+    text = " ".join(m["text"].lower() for m in context["transcript"] if m["role"] == "candidate")
+    scores = []
+    for dim, keys in _FAKE_RUBRIC.items():
+        hits = sum(1 for k in keys if k in text)
+        scores.append({"dimension": dim, "score": max(1, min(4, 1 + hits)), "note": f"[fake] {hits} related terms mentioned."})
+    avg = sum(x["score"] for x in scores) / len(scores)
+    hints = context.get("hints_given", 0)
+    outcome = "solved_independently" if avg >= 3 and not hints else "solved_with_hints" if avg >= 2.5 else "struggled" if avg >= 1.5 else "gave_up"
+    weak = [x["dimension"] for x in scores if x["score"] <= 2]
+    return {
+        "scores": scores,
+        "outcome": outcome,
+        "summary": "[Offline grader] Scored by keyword coverage, not judgement. Use the Claude API for real feedback.",
+        "strengths": [x["dimension"] for x in scores if x["score"] >= 3],
+        "weak_concepts": weak,
     }

@@ -3,7 +3,7 @@
  * per-control interaction states (hover / pressed / disabled).
  */
 import AxeBuilder from "@axe-core/playwright";
-import { test, expect, open } from "./fixtures";
+import { test, expect, open, reload } from "./fixtures";
 
 const DARK_BG = "oklch(0.145 0.004 265)";
 
@@ -35,7 +35,7 @@ test.describe("theme", () => {
     await toggle.click();
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("light");
     await expect(toggle).toHaveAttribute("aria-label", "Switch to dark mode");
-    await page.reload();
+    await reload(page);
     await page.locator("#today").waitFor();
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("light");
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(DARK_BG);
@@ -66,7 +66,7 @@ test.describe("accessibility @responsive", () => {
     await mockDashboard();
     await open(page);
     for (const w of [1, 2, 4]) await page.locator(`[data-week="${w}"]`).click();
-    await page.getByRole("button", { name: /^Show all 26$/ }).click();
+    await page.locator("#intel").getByRole("button", { name: /^Show all \d+$/ }).click();
     await page.getByText(/What candidates say/).click();
     await page.locator("#intel summary", { hasText: "Sources" }).click();
     await scan(page);

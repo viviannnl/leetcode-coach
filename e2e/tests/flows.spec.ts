@@ -27,7 +27,7 @@ test("record a session and see it in activity", async ({ page }) => {
   await page.locator("#recap").fill(`${first} took 12 min, solved it.`);
   await page.locator("#recap").press("Meta+Enter");
   await expect(page.locator(".result li").first()).toContainText(first, { timeout: 10_000 });
-  await expect(page.locator("#activity .activity li").first()).toContainText(first);
+  await expect(page.locator("#activity .activity--recent li").first()).toContainText(first);
 });
 
 test("API guards reject cross-site style requests", async ({ request }) => {

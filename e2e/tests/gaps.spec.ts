@@ -94,11 +94,40 @@ test("less common render branches", async ({ page, mockDashboard }) => {
   await expect(page.locator("#today .row--done")).toHaveCount(1);
   await expect(page.locator("#today .row").first()).toContainText("Anthropic pick");
   await expect(page.locator("#intel .intel-row").first().locator(".intel-row__desc")).not.toBeEmpty();
-  await expect(page.locator("#activity .activity li").first()).toContainText("some_new_outcome");
+  await expect(page.locator("#activity .activity--recent li").first()).toContainText("some_new_outcome");
 });
 
 test("intel with no problems", async ({ page, mockDashboard }) => {
   await mockDashboard((d) => { d.company.problems = []; });
   await open(page);
   await expect(page.locator("#intel")).toContainText("No specific problems found yet.");
+});
+
+test("recap failure keeps the text and explains", async ({ page, mockDashboard, mockJob }) => {
+  await mockDashboard();
+  await mockJob("/api/feedback", { error: "Model request failed (500): Internal error" });
+  await open(page);
+  await page.locator("#recap").fill("Profiler took 30 min, clean.");
+  await page.getByRole("button", { name: "Record session" }).click();
+  await expect(page.locator("#toast")).toContainText("Internal error");
+  await expect(page.locator("#recap")).toHaveValue("Profiler took 30 min, clean.");
+});
+
+test("abandon failure keeps the session", async ({ page, mockDashboard }, info) => {
+  allowConsoleErrors(info);
+  await mockDashboard((d) => { d.design_session = { id: "abc123", title: "Design a Rate Limiter", status: "active", transcript: [{ role: "interviewer", text: "Hi", phase: "requirements" }], concepts: [], hints: 0 }; });
+  await page.route("**/api/design/abandon", (r) => r.fulfill({ status: 400, json: { error: "That design session doesn't exist." } }));
+  await open(page);
+  await page.getByRole("button", { name: "Abandon" }).click();
+  await page.getByRole("button", { name: "Abandon, record nothing" }).click();
+  await expect(page.locator("#toast")).toContainText("doesn't exist");
+});
+
+test("unlink failure explains", async ({ page, mockDashboard }, info) => {
+  allowConsoleErrors(info);
+  await mockDashboard((d) => { d.leetcode = { username: "vivian_codes", synced_at: new Date().toISOString(), solved: { All: 1, Easy: 1, Medium: 0, Hard: 0 }, tags: [], last_added: [], last_other: [] }; });
+  await page.route("**/api/leetcode/unlink", (r) => r.fulfill({ status: 500, json: { error: "Couldn't save state." } }));
+  await open(page);
+  await page.locator("#activity").getByRole("button", { name: "Unlink" }).click();
+  await expect(page.locator("#toast")).toContainText("Couldn't save state");
 });

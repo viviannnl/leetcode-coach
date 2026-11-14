@@ -31,72 +31,56 @@ from coach.store import Attempt, Store  # noqa: E402
 DEMO = ROOT / "coach" / "demo"
 MIDWAY_TODAY = "2026-11-25"
 
-# (date, title, topic, outcome, minutes, note) — a plausible two weeks.
-HISTORY = [
-    ("2026-11-13", "Contains Duplicate", "Arrays & Hashing", "solved_independently", 6, ""),
-    ("2026-11-13", "Two Sum", "Arrays & Hashing", "solved_independently", 8, ""),
-    ("2026-11-13", "Find Duplicate File in System", "Arrays & Hashing", "solved_with_hints", 35, "Looked up how to split the path string; grouping by content was fine."),
-    ("2026-11-13", "Banking system (multi-level OA)", "Practical Coding", "gave_up", 20, "Only got through level 1 before running out of time."),
-    ("2026-11-14", "Group Anagrams", "Arrays & Hashing", "solved_with_hints", 28, "Hint on using a sorted-string key."),
-    ("2026-11-15", "Encode and Decode Strings", "Arrays & Hashing", "solved_independently", 22, "Length-prefix encoding."),
-    ("2026-11-16", "Two Sum", "Arrays & Hashing", "reviewed_easily", 4, ""),
-    ("2026-11-16", "Contains Duplicate", "Arrays & Hashing", "reviewed_easily", 3, ""),
-    ("2026-11-16", "Valid Anagram", "Arrays & Hashing", "solved_independently", 9, ""),
-    ("2026-11-17", "Top K Frequent Elements", "Arrays & Hashing", "solved_with_hints", 30, "Forgot bucket sort; used a heap after a hint."),
-    ("2026-11-17", "Find Duplicate File in System", "Arrays & Hashing", "reviewed_easily", 14, ""),
-    ("2026-11-18", "Binary Search", "Binary Search", "solved_independently", 10, ""),
-    ("2026-11-18", "Group Anagrams", "Arrays & Hashing", "reviewed_easily", 9, ""),
-    ("2026-11-19", "Time Based Key-Value Store", "Binary Search", "solved_with_hints", 34, "bisect_right off-by-one on equal timestamps."),
-    ("2026-11-20", "In-memory database (multi-level OA)", "Practical Coding", "struggled", 75, "Levels 1-3 done; TTL + history at level 4 forced a messy refactor."),
-    ("2026-11-21", "File deduplication at scale", "Practical Coding", "solved_with_hints", 55, "Size → partial hash → full hash; needed a nudge on streaming reads."),
-    ("2026-11-21", "Binary Search", "Binary Search", "reviewed_easily", 4, ""),
-    ("2026-11-22", "Encode and Decode Strings", "Arrays & Hashing", "reviewed_easily", 7, ""),
-    ("2026-11-22", "Group Anagrams", "Arrays & Hashing", "reviewed_easily", 6, ""),
-    ("2026-11-22", "Valid Anagram", "Arrays & Hashing", "reviewed_easily", 3, ""),
-    ("2026-11-23", "Two Sum", "Arrays & Hashing", "reviewed_easily", 3, ""),
-    ("2026-11-23", "Contains Duplicate", "Arrays & Hashing", "reviewed_easily", 2, ""),
-    ("2026-11-23", "Number of Islands", "Graphs", "solved_independently", 18, ""),
-    ("2026-11-23", "In-memory database (multi-level OA)", "Practical Coding", "solved_with_hints", 60, "Cleaner this time: designed for TTL from level 1."),
-    ("2026-11-24", "Find Duplicate File in System", "Arrays & Hashing", "reviewed_easily", 11, ""),
-    ("2026-11-24", "Clone Graph", "Graphs", "viewed_solution", 30, "Mixed up when to create the clone vs. when to recurse."),
-]
+# (date, title, topic, outcome, minutes, note) — a plausible eleven days of the
+# recorded campaign (practical coding + system design, no algorithms rounds).
+# The recorded run's own design session (Design a Key-Value Store) is copied in.
+P, D = "Practical Coding", "Design: "
+HISTORY = sorted([
+    ("2026-11-14", "In-Memory Key-Value Database (4-level OA)", P, "struggled", 90, "Levels 1-3 done; TTL at level 3 forced a refactor of the storage dict."),
+    ("2026-11-15", "Banking System with Transaction Log (4-level OA)", P, "solved_with_hints", 80, "Needed a nudge on making transfers atomic with the log."),
+    ("2026-11-16", "In-Memory Key-Value Database (4-level OA)", P, "solved_with_hints", 75, "All 4 levels; backup/restore still slow to write."),
+    ("2026-11-17", "Task Management System with Dependencies (OA)", P, "struggled", 85, "Cycle detection in dependencies took most of the time."),
+    ("2026-11-18", "Design a Distributed Cache", D + "Storage & Caching", "solved_with_hints", 50, "Hint on handling hot keys."),
+    ("2026-11-19", "Banking System with Transaction Log (4-level OA)", P, "reviewed_easily", 40, ""),
+    ("2026-11-20", "Task Management System with Dependencies (OA)", P, "solved_with_hints", 60, "Topological sort clicked; status rollups still fiddly."),
+    ("2026-11-21", "LRU Cache Decorator with Persistence", P, "solved_with_hints", 55, "Crash safety: wrote temp file + rename after a hint."),
+    ("2026-11-22", "Design a Rate Limiter", D + "Foundations", "solved_independently", 50, "Token bucket per key in a sharded store; discussed enforcement at the gateway."),
+    ("2026-11-23", "Exclusive Time of Functions", "Stack", "solved_independently", 25, "Warm-up for the profiler task."),
+    ("2026-11-23", "Profiler: Stack Samples to Function Events", P, "viewed_solution", 60, "Mixed up emitting end events for frames that disappear mid-stack."),
+    ("2026-11-24", "In-Memory Key-Value Database (4-level OA)", P, "reviewed_easily", 45, "Under 45 min for all levels."),
+])
 
 MIDWAY_PLAN = {
     "date": MIDWAY_TODAY,
-    "minutes": 75,
+    "minutes": 90,
     "focus": "balanced",
     "coach_note": (
-        "Graph week, day three. Clone Graph needs a second pass while yesterday's "
-        "solution is still fresh, then Rotting Oranges adds multi-source BFS, the "
-        "piece you need before the concurrent web crawler on Friday."
+        "Week two, day five. The profiler task needs a second pass while yesterday's "
+        "solution is fresh, then your first inference-flavored design: Anthropic's "
+        "design rounds lean that way, so it's worth a full mock interview."
     ),
     "items": [
         {
-            "title": "Clone Graph", "kind": "review", "difficulty": "Medium", "topic": "Graphs",
-            "estimated_minutes": 20, "reason": "You read the solution yesterday. Re-derive it from a blank file.",
-            "link": "https://leetcode.com/problems/clone-graph/", "source": "roadmap",
+            "title": "Profiler: Stack Samples to Function Events", "kind": "review", "difficulty": "Medium",
+            "topic": "Practical Coding", "estimated_minutes": 40, "track": "practical",
+            "reason": "You read the solution yesterday. Rebuild it from a blank file, emitting end events in stack order.",
+            "link": "", "source": "company",
         },
         {
-            "title": "Rotting Oranges", "kind": "new", "difficulty": "Medium", "topic": "Graphs",
-            "estimated_minutes": 25, "reason": "Multi-source BFS with levels, the same frontier shape as a crawler.",
-            "link": "https://leetcode.com/problems/rotting-oranges/", "source": "roadmap",
-        },
-        {
-            "title": "Top K Frequent Elements", "kind": "review", "difficulty": "Medium", "topic": "Arrays & Hashing",
-            "estimated_minutes": 12, "reason": "Due today. Try bucket sort without the hint this time.",
-            "link": "https://leetcode.com/problems/top-k-frequent-elements/", "source": "roadmap",
-        },
-        {
-            "title": "Time Based Key-Value Store", "kind": "review", "difficulty": "Medium", "topic": "Binary Search",
-            "estimated_minutes": 15, "reason": "The timestamp lookup is the core of the in-memory DB's history level.",
-            "link": "https://leetcode.com/problems/time-based-key-value-store/", "source": "roadmap",
+            "title": "Design an LLM Inference API", "kind": "new", "difficulty": "Hard",
+            "topic": "Design: Infrastructure & ML", "estimated_minutes": 50, "track": "system_design",
+            "reason": "Highest-weight reported design prompt. Run it as a mock interview and push on batching and streaming.",
+            "link": "", "source": "design",
         },
     ],
 }
 
 
 def main(recorded: Path) -> None:
-    files = ["state.json", "campaign.json", "last_plan.json", "companies/anthropic.json"]
+    sessions = sorted((recorded / "design_sessions").glob("*.json"))
+    files = ["state.json", "campaign.json", "last_plan.json", "companies/anthropic.json"] + [
+        str(p.relative_to(recorded)) for p in sessions
+    ]
     for f in files:
         if not (recorded / f).exists():
             sys.exit(f"Missing {recorded / f}")
@@ -113,13 +97,20 @@ def main(recorded: Path) -> None:
     # midway: same intel + campaign, simulated history and a plan for MIDWAY_TODAY.
     mid = DEMO / "midway"
     shutil.rmtree(mid, ignore_errors=True)
-    for f in ("campaign.json", "companies/anthropic.json"):
+    for f in ["campaign.json", "companies/anthropic.json"] + files[4:]:
         (mid / f).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(recorded / f, mid / f)
     store = Store(mid / "state.json")
     src = Store(recorded / "state.json").load()
+    recorded_records = src.records
     src.records = {}
+    # Keep the recorded design session's attempt (real interviewer + grader).
+    for title, rec in recorded_records.items():
+        if title.startswith("Design "):
+            src.records[title] = rec
     for d, title, topic, outcome, minutes, note in HISTORY:
+        if title in src.records and any(a.date > d for a in src.records[title].attempts):
+            continue
         rec = src.record_for(title, topic)
         attempt = Attempt(
             date=d, minutes=minutes, outcome=outcome,

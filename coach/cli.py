@@ -26,7 +26,7 @@ from pathlib import Path
 from . import llm
 from .coach import Coach, Plan
 from .roadmap import available_roadmaps, load_roadmap
-from .store import Store, default_state_path
+from .store import LEVELS, Store, default_state_path
 
 # --- small terminal helpers ------------------------------------------------ #
 
@@ -269,11 +269,15 @@ def cmd_target(args: argparse.Namespace) -> int:
             print(dim("No target yet. e.g. `leetcode-coach target Anthropic --date 2026-12-25`"))
         return 0
     try:
-        t = coach.set_target(" ".join(args.company), args.date, args.minutes)
-    except ValueError:
-        print(yellow("Dates look like 2026-12-25."))
+        posting = Path(args.posting).read_text() if args.posting else None
+        t = coach.set_target(" ".join(args.company), args.date, args.minutes, level=args.level, role=args.role, job_posting=posting)
+    except ValueError as exc:
+        print(yellow(str(exc) if "level" in str(exc) else "Dates look like 2026-12-25."))
         return 1
-    print(green(f"✓ Preparing you for {bold(t.company)}" + (f" on {t.interview_date}." if t.interview_date else ".")))
+    except OSError as exc:
+        print(yellow(f"Couldn't read the job posting: {exc}"))
+        return 1
+    print(green(f"✓ Preparing you for {bold(t.company)}, {t.level_label} {t.role}" + (f", on {t.interview_date}." if t.interview_date else ".")))
     print("Next, learn what they ask:")
     print(cyan("    leetcode-coach research"))
     return 0
@@ -319,6 +323,85 @@ def cmd_campaign(args: argparse.Namespace) -> int:
         titles = ", ".join(p["title"] for p in w["problems"])
         print(dim(f"     {titles}"))
     print()
+    return 0
+
+
+def cmd_design(args: argparse.Namespace) -> int:
+    """Run a mock system design interview in the terminal."""
+    coach = Coach(store=Store(args.state))
+    title = " ".join(args.title)
+    try:
+        sess = coach.active_design_session() if not title else coach.start_design_session(title, progress=lambda m: print(dim(m)))
+        if sess is None:
+            print(yellow("No active session. e.g. `leetcode-coach design Design a Rate Limiter`"))
+            return 1
+        for m in sess["transcript"]:
+            who = cyan("Interviewer") if m["role"] == "interviewer" else bold("You")
+            print(f"\n{who}: {m['text']}")
+        print(dim("\nType your answer (blank line to send). Commands: /finish, /quit"))
+        while True:
+            lines: list[str] = []
+            try:
+                while True:
+                    line = input("> " if not lines else "  ")
+                    if not line and lines:
+                        break
+                    if line.strip() in ("/finish", "/quit"):
+                        lines = [line.strip()]
+                        break
+                    lines.append(line)
+            except (EOFError, KeyboardInterrupt):
+                print(dim("\nPaused. Resume with `leetcode-coach design`."))
+                return 0
+            text = "\n".join(lines).strip()
+            if text == "/quit":
+                print(dim("Paused. Resume with `leetcode-coach design`."))
+                return 0
+            if text == "/finish":
+                done = coach.finish_design_session(sess["id"], progress=lambda m: print(dim(m)))
+                card = done["scorecard"]
+                print()
+                for sc in card["scores"]:
+                    print(f"  {_bar(sc['score'], 4, 8)}  {sc['dimension']}  {dim(sc['note'])}")
+                print(f"\n{card['summary']}")
+                if card.get("weak_concepts"):
+                    print(yellow("Revisit: " + ", ".join(card["weak_concepts"])))
+                print(dim(f"Next review around {card.get('next_review')}."))
+                return 0
+            if not text:
+                continue
+            sess = coach.reply_design_session(sess["id"], text, progress=lambda m: print(dim(m)))
+            print(f"\n{cyan('Interviewer')}: {sess['transcript'][-1]['text']}")
+    except (RuntimeError, ValueError, llm.LLMError) as exc:
+        print(yellow(str(exc)))
+        return 2
+
+
+def cmd_leetcode(args: argparse.Namespace) -> int:
+    """Link a public LeetCode profile, or sync the linked one."""
+    from . import leetcode
+
+    coach = Coach(store=Store(args.state))
+    try:
+        if args.unlink:
+            coach.unlink_leetcode()
+            print(green("✓ LeetCode account unlinked. Logged history stays."))
+            return 0
+        progress = lambda m: print(dim(m))  # noqa: E731
+        res = coach.link_leetcode(args.username, progress) if args.username else coach.sync_leetcode(progress)
+    except (leetcode.LeetCodeError, RuntimeError, ValueError) as exc:
+        print(yellow(str(exc)))
+        return 2
+    s = res["solved"]
+    print(green(f"✓ @{res['username']}: {s['All']} solved ({s['Easy']} easy · {s['Medium']} medium · {s['Hard']} hard)"))
+    if res["added"]:
+        print("Logged from your recent accepted submissions:")
+        for t in res["added"]:
+            print(f"  {green('✓')} {t}")
+    else:
+        print(dim("No new roadmap problems in your recent submissions."))
+    if res["other"]:
+        print(dim(f"Also solved (not on your plan): {', '.join(res['other'][:6])}"))
     return 0
 
 
@@ -397,6 +480,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_tgt.add_argument("company", nargs="*", help="Company name.")
     p_tgt.add_argument("--date", help="Interview date (YYYY-MM-DD).")
     p_tgt.add_argument("--minutes", type=int, help="Typical minutes per day you can practise.")
+    p_tgt.add_argument("--level", choices=list(LEVELS), help="Target level (default: mid).")
+    p_tgt.add_argument("--role", help='Role title, e.g. "Software Engineer, Infrastructure".')
+    p_tgt.add_argument("--posting", help="Path to a text file with the job posting.")
     p_tgt.add_argument("--clear", action="store_true", help="Remove the target.")
     p_tgt.set_defaults(func=cmd_target)
 
@@ -406,6 +492,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_camp = sub.add_parser("campaign", help="Show the full plan to your interview.")
     p_camp.add_argument("--regenerate", action="store_true", help="Re-plan from today.")
     p_camp.set_defaults(func=cmd_campaign)
+
+    p_des = sub.add_parser("design", help="Mock system design interview, e.g. `design Design a Rate Limiter`.")
+    p_des.add_argument("title", nargs="*", help="Design problem title (omit to resume).")
+    p_des.set_defaults(func=cmd_design)
+
+    p_lc = sub.add_parser("leetcode", help="Link your public LeetCode profile (`leetcode <username>`) or sync it.")
+    p_lc.add_argument("username", nargs="?", help="LeetCode username (omit to sync the linked one).")
+    p_lc.add_argument("--unlink", action="store_true", help="Stop syncing (keeps logged history).")
+    p_lc.set_defaults(func=cmd_leetcode)
 
     p_dash = sub.add_parser("dashboard", help="Open the visual dashboard (localhost only).")
     p_dash.add_argument("--port", type=int, default=8765)

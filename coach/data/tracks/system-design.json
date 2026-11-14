@@ -1,0 +1,55 @@
+{
+  "id": "system-design",
+  "name": "System Design",
+  "description": "Classic system design interview problems, ordered from foundations to large distributed systems. Each problem lists the concepts it trains.",
+  "topics": [
+    {
+      "name": "Design: Foundations",
+      "problems": [
+        { "title": "Design a URL Shortener", "difficulty": "Easy", "concepts": ["hashing / ID generation", "key-value storage", "read-heavy caching", "redirect latency"] },
+        { "title": "Design a Unique ID Generator", "difficulty": "Easy", "concepts": ["clock skew", "Snowflake IDs", "coordination-free generation"] },
+        { "title": "Design a Pastebin", "difficulty": "Easy", "concepts": ["object storage", "expiry / TTL", "CDN"] },
+        { "title": "Design a Rate Limiter", "difficulty": "Medium", "concepts": ["token bucket", "sliding window", "distributed counters", "where to enforce"] },
+        { "title": "Design a Key-Value Store", "difficulty": "Medium", "concepts": ["partitioning", "replication", "quorum consistency", "conflict resolution"] }
+      ]
+    },
+    {
+      "name": "Design: Storage & Caching",
+      "problems": [
+        { "title": "Design a Distributed Cache", "difficulty": "Medium", "concepts": ["consistent hashing", "eviction policies", "cache invalidation", "hot keys"] },
+        { "title": "Design a Web Crawler at Scale", "difficulty": "Medium", "concepts": ["URL frontier", "politeness", "deduplication", "distributed workers"] },
+        { "title": "Design Search Autocomplete", "difficulty": "Medium", "concepts": ["tries", "top-k aggregation", "offline vs online updates"] },
+        { "title": "Design File Storage and Sync", "difficulty": "Hard", "concepts": ["chunking", "content hashing / dedup", "metadata service", "sync conflicts"] }
+      ]
+    },
+    {
+      "name": "Design: Messaging & Async",
+      "problems": [
+        { "title": "Design a Notification System", "difficulty": "Medium", "concepts": ["fan-out", "retries and idempotency", "third-party providers", "user preferences"] },
+        { "title": "Design a Distributed Job Scheduler", "difficulty": "Medium", "concepts": ["leases", "at-least-once execution", "cron at scale", "failure recovery"] },
+        { "title": "Design a Distributed Message Queue", "difficulty": "Hard", "concepts": ["partitions", "consumer groups", "ordering", "durability and replication"] },
+        { "title": "Design a Chat System", "difficulty": "Hard", "concepts": ["WebSockets", "presence", "message ordering", "offline delivery"] }
+      ]
+    },
+    {
+      "name": "Design: Product Systems",
+      "problems": [
+        { "title": "Design a News Feed", "difficulty": "Hard", "concepts": ["fan-out on write vs read", "ranking", "celebrity problem", "feed caching"] },
+        { "title": "Design a Leaderboard", "difficulty": "Medium", "concepts": ["sorted sets", "sharded rankings", "real-time updates"] },
+        { "title": "Design a Proximity Service", "difficulty": "Medium", "concepts": ["geohash / quadtree", "read scaling", "location updates"] },
+        { "title": "Design a Ticket Booking System", "difficulty": "Medium", "concepts": ["inventory locking", "double-booking", "payment hold", "traffic spikes"] },
+        { "title": "Design a Payment System", "difficulty": "Hard", "concepts": ["idempotency keys", "ledger / double-entry", "reconciliation", "exactly-once effects"] },
+        { "title": "Design a Collaborative Document Editor", "difficulty": "Hard", "concepts": ["OT vs CRDT", "presence", "versioning", "conflict-free merges"] }
+      ]
+    },
+    {
+      "name": "Design: Infrastructure & ML",
+      "problems": [
+        { "title": "Design a Metrics and Monitoring System", "difficulty": "Hard", "concepts": ["time-series storage", "downsampling", "alerting", "high write throughput"] },
+        { "title": "Design a Distributed Logging Pipeline", "difficulty": "Medium", "concepts": ["log shipping", "backpressure", "indexing", "retention tiers"] },
+        { "title": "Design an LLM Inference API", "difficulty": "Hard", "concepts": ["GPU batching", "streaming responses", "rate limits and quotas", "KV-cache / prompt caching", "multi-region capacity"] },
+        { "title": "Design a Model Evaluation Pipeline", "difficulty": "Medium", "concepts": ["batch orchestration", "reproducibility", "result storage", "regression detection"] }
+      ]
+    }
+  ]
+}

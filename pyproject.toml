@@ -20,4 +20,4 @@ leetcode-coach = "coach.cli:main"
 packages = ["coach"]
 
 [tool.setuptools.package-data]
-coach = ["data/*.json", "static/*", "demo/*/*.json", "demo/*/companies/*.json"]
+coach = ["data/*.json", "data/tracks/*.json", "static/*", "demo/*/*.json", "demo/*/companies/*.json", "demo/*/design_sessions/*.json"]

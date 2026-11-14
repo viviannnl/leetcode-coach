@@ -23,6 +23,16 @@ _DATA_DIR = Path(__file__).parent / "data"
 # (e.g. multi-stage "build an in-memory database" coding rounds).
 PRACTICAL_TOPIC = "Practical Coding"
 
+# Practice tracks: each one is a kind of preparation the coach can schedule.
+# Interview rounds map onto these; a round no track covers is reported as such.
+ALGORITHMS = "algorithms"
+PRACTICAL = "practical"
+SYSTEM_DESIGN = "system_design"
+TRACKS = (ALGORITHMS, PRACTICAL, SYSTEM_DESIGN)
+TRACK_LABELS = {ALGORITHMS: "Algorithms", PRACTICAL: "Practical coding", SYSTEM_DESIGN: "System design"}
+
+_TRACK_FOR_KIND = {"leetcode": ALGORITHMS, "practical": PRACTICAL, "design": SYSTEM_DESIGN}
+
 
 def norm_title(title: str) -> str:
     """Normalise a problem title for matching.
@@ -45,15 +55,19 @@ class Problem:
     difficulty: str
     # Global position in the roadmap's recommended order (0-based).
     order: int
-    # "roadmap" for the core curriculum, "company" for targeted extras.
+    # "roadmap" for the core curriculum, "design" for the system design track,
+    # "company" for targeted extras.
     source: str = "roadmap"
     url: str = ""
+    track: str = ALGORITHMS
+    # What a design problem trains (empty for coding problems).
+    concepts: tuple[str, ...] = ()
 
     @property
     def link(self) -> str:
         if self.url:
             return self.url
-        if self.source == "roadmap":
+        if self.source == "roadmap" and self.track == ALGORITHMS:
             return f"https://leetcode.com/problems/{slugify(self.title)}/"
         return ""
 
@@ -72,19 +86,23 @@ class Roadmap:
                 return p
         return None
 
-    def topics(self) -> list[str]:
+    def topics(self, track: str | None = None) -> list[str]:
         seen: list[str] = []
         for p in self.problems:
-            if p.topic not in seen:
+            if (track is None or p.track == track) and p.topic not in seen:
                 seen.append(p.topic)
         return seen
+
+    def in_track(self, track: str) -> list[Problem]:
+        return [p for p in self.problems if p.track == track]
 
     def with_extras(self, extras: list[dict]) -> "Roadmap":
         """Return a copy extended with company problems not already present.
 
         ``extras`` items need ``title``, ``topic``, ``difficulty`` and may carry
-        ``url``. Existing roadmap titles win, so a company problem that is also
-        a NeetCode problem keeps its roadmap position.
+        ``url``, ``kind`` (leetcode | practical | design) and ``concepts``.
+        Existing titles win, so a company problem that is also a NeetCode or
+        design-track problem keeps its curriculum position.
         """
         problems = list(self.problems)
         known = {norm_title(p.title) for p in problems}
@@ -94,6 +112,7 @@ class Roadmap:
             if not key or key in known:
                 continue
             known.add(key)
+            track = _TRACK_FOR_KIND.get(e.get("kind", ""), PRACTICAL if e.get("topic") == PRACTICAL_TOPIC else ALGORITHMS)
             problems.append(
                 Problem(
                     title=e["title"],
@@ -102,10 +121,17 @@ class Roadmap:
                     order=order,
                     source="company",
                     url=e.get("url", ""),
+                    track=track,
+                    concepts=tuple(e.get("concepts", ())),
                 )
             )
             order += 1
         return replace(self, problems=problems)
+
+
+def load_design_track() -> list[dict]:
+    """The system design curriculum as raw topic dicts."""
+    return json.loads((_DATA_DIR / "tracks" / "system-design.json").read_text())["topics"]
 
 
 def available_roadmaps() -> list[str]:
@@ -113,8 +139,12 @@ def available_roadmaps() -> list[str]:
     return sorted(p.stem for p in _DATA_DIR.glob("*.json"))
 
 
-def load_roadmap(roadmap_id: str) -> Roadmap:
-    """Load a roadmap by id (e.g. ``neetcode-150``)."""
+def load_roadmap(roadmap_id: str, with_design: bool = True) -> Roadmap:
+    """Load a roadmap by id (e.g. ``neetcode-150``).
+
+    The system design track is appended by default, so the coach can schedule
+    design practice alongside coding.
+    """
     path = _DATA_DIR / f"{roadmap_id}.json"
     if not path.exists():
         raise FileNotFoundError(
@@ -135,6 +165,22 @@ def load_roadmap(roadmap_id: str) -> Roadmap:
                 )
             )
             order += 1
+
+    if with_design:
+        for topic in load_design_track():
+            for prob in topic["problems"]:
+                problems.append(
+                    Problem(
+                        title=prob["title"],
+                        topic=topic["name"],
+                        difficulty=prob["difficulty"],
+                        order=order,
+                        source="design",
+                        track=SYSTEM_DESIGN,
+                        concepts=tuple(prob.get("concepts", ())),
+                    )
+                )
+                order += 1
 
     return Roadmap(
         id=raw["id"],

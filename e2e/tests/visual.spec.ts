@@ -3,6 +3,7 @@
  * visual change (a colour, a border, spacing) fails with a diff image.
  * Update intentionally with:  npm run test:update
  */
+import fs from "node:fs";
 import { test, expect, open } from "./fixtures";
 
 test.describe("visual @responsive", () => {
@@ -41,5 +42,28 @@ test.describe("visual @responsive", () => {
     await mockDashboard((d) => { d.target = null; });
     await open(page);
     await expect(page).toHaveScreenshot("setup.png");
+  });
+});
+
+test.describe("visual: design @responsive", () => {
+  const session = JSON.parse(fs.readFileSync(new URL("../fixtures/design-session.json", import.meta.url), "utf8"));
+  test("session panel", async ({ page, mockDashboard }) => {
+    await mockDashboard((d) => { const { scorecard, finished, ...s } = session; d.design_session = { ...s, status: "active" }; });
+    await open(page);
+    await page.mouse.move(0, 0);
+    await expect(page.locator("#session")).toHaveScreenshot("session.png");
+  });
+  test("scorecard panel", async ({ page, mockDashboard }) => {
+    await mockDashboard((d) => { d.design_scorecards = [{ id: session.id, title: session.title, finished: session.finished, minutes: session.minutes, scorecard: session.scorecard }]; });
+    await open(page);
+    await page.getByRole("list", { name: "Mock interviews" }).getByRole("button", { name: "Scorecard" }).click();
+    await page.waitForTimeout(900); // the jump's smooth scroll settles before the shot
+    await page.mouse.move(0, 0);
+    await expect(page.locator("#session")).toHaveScreenshot("scorecard.png");
+  });
+  test("readiness panel", async ({ page, mockDashboard }) => {
+    await mockDashboard();
+    await open(page);
+    await expect(page.locator("#readiness")).toHaveScreenshot("readiness.png");
   });
 });

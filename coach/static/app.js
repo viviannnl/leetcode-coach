@@ -19,6 +19,7 @@ const ICONS = {
   layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   gauge: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
 };
 const icon = (name, cls = "") =>
   `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -52,6 +53,18 @@ function fmtRange(a, b) {
   const sameMonth = a.slice(0, 7) === b.slice(0, 7);
   return `${fmtDate(a)}–${sameMonth ? Number(b.slice(8, 10)) : fmtDate(b)}`;
 }
+const TRACK_LABEL = { algorithms: "Algorithms", practical: "Practical coding", system_design: "System design", behavioral: "Behavioral", code_review: "Code review", other: "Other" };
+const TRACK_SHORT = { algorithms: "ALG", practical: "PRAC", system_design: "DESIGN" };
+const PRACTICE_TRACKS = ["algorithms", "practical", "system_design"];
+const fmtMin = (m) => (m >= 60 ? `${(m / 60).toFixed(m % 60 ? 1 : 0)}h` : `${m}m`);
+function ago(iso) {
+  if (!iso) return "never";
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const h = Math.round(mins / 60);
+  return h < 24 ? `${h} h ago` : fmtDate(iso.slice(0, 10));
+}
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const pad2 = (n) => String(n).padStart(2, "0");
 const OUTCOME = {
@@ -76,6 +89,9 @@ const ui = {
   showAllProblems: false,
   showAllTopics: false,
   showFormat: false,
+  designDraft: "",
+  lcUsername: "",
+  scorecard: null, // the just-finished design session, shown until dismissed
   editingTarget: false,
   setupError: null,
   busy: {}, // key -> progress message
@@ -149,6 +165,9 @@ async function saveTarget(form) {
     company: String(fd.get("company") || "").trim(),
     interview_date: fd.get("interview_date") || null,
     daily_minutes: Number(fd.get("daily_minutes")) || null,
+    level: fd.get("level") || null,
+    role: String(fd.get("role") || "").trim() || null,
+    job_posting: fd.has("job_posting") ? String(fd.get("job_posting") || "") : null,
   };
   if (!payload.company) { ui.setupError = "Which company are you preparing for?"; render(); $("#company")?.focus(); return; }
   ui.setupError = null;
@@ -159,7 +178,8 @@ async function saveTarget(form) {
     ui.editingTarget = false;
     await load();
     const sameCompany = prev && prev.toLowerCase() === payload.company.toLowerCase();
-    if (!sameCompany || !ui.data.company) await research({ thenCampaign: true });
+    // New company, new level (intel is level-specific) or no intel yet → research, then plan.
+    if (!sameCompany || ui.data.needs_research || !ui.data.company) await research({ thenCampaign: true });
     else if (payload.interview_date) await replan();
   } catch (e) {
     ui.setupError = e.message;
@@ -211,13 +231,86 @@ async function sendRecap() {
   await load();
 }
 
+async function startDesign(title) {
+  ui.pendingTitle = title;
+  try {
+    await runJob("design", "/api/design/start", { title });
+    ui.designDraft = "";
+    ui.scorecard = null;
+    await load();
+    goTo("session");
+  } catch (e) { toast(e.message, "error"); await load(); }
+  finally { ui.pendingTitle = null; }
+}
+
+async function sendDesign() {
+  const sess = ui.data?.design_session;
+  const text = ui.designDraft.trim();
+  if (!sess) return;
+  if (!text) { toast("Write your answer first.", "error"); $("#design-answer")?.focus(); return; }
+  try {
+    await runJob("design", "/api/design/reply", { session: sess.id, text });
+    ui.designDraft = "";
+  } catch (e) { toast(e.message, "error"); }
+  await load();
+  $("#design-answer")?.focus();
+}
+
+async function finishDesign() {
+  const sess = ui.data?.design_session;
+  if (!sess) return;
+  try {
+    ui.scorecard = await runJob("design", "/api/design/finish", { session: sess.id });
+    ui.designDraft = "";
+  } catch (e) { toast(e.message, "error"); }
+  await load();
+}
+
+async function abandonDesign() {
+  const sess = ui.data?.design_session;
+  if (!sess) return;
+  try { await api("/api/design/abandon", { session: sess.id }); toast("Session abandoned. Nothing was recorded."); }
+  catch (e) { toast(e.message, "error"); }
+  ui.designDraft = "";
+  await load();
+}
+
+async function linkLeetCode() {
+  const username = ui.lcUsername.trim().replace(/^@/, "");
+  if (!/^[A-Za-z0-9_-]{1,40}$/.test(username)) { toast("Enter your LeetCode username (letters, digits, - and _).", "error"); $("#lc-username")?.focus(); return; }
+  try {
+    const r = await runJob("leetcode", "/api/leetcode", { username });
+    ui.lcUsername = "";
+    toast(syncMessage(r));
+  } catch (e) { toast(e.message, "error"); }
+  await load();
+}
+
+async function syncLeetCode() {
+  try { toast(syncMessage(await runJob("leetcode", "/api/leetcode/sync"))); }
+  catch (e) { toast(e.message, "error"); }
+  await load();
+}
+
+async function unlinkLeetCode() {
+  try { await api("/api/leetcode/unlink", {}); toast("LeetCode unlinked. Your logged history stays."); }
+  catch (e) { toast(e.message, "error"); }
+  await load();
+}
+
+const syncMessage = (r) => r.added?.length
+  ? `Logged ${plural(r.added.length, "solve")} from LeetCode: ${r.added.slice(0, 3).join(", ")}${r.added.length > 3 ? "…" : ""}`
+  : `@${r.username} is up to date. No new solves on your plan.`;
+
 // ---- Render helpers --------------------------------------------------------
 
-function btn(label, { action, kind = "secondary", size = "", busyKey, iconName, disabled = false, type = "button" } = {}) {
-  const busy = busyKey && busyKey in ui.busy;
+function btn(label, { action, kind = "secondary", size = "", busyKey, iconName, disabled = false, type = "button", data = {} } = {}) {
+  // A spinner belongs only on the control for the item being worked on; others with the same key just lock.
+  const busy = busyKey && busyKey in ui.busy && (!data.title || data.title === ui.pendingTitle);
   const anyBusy = Object.keys(ui.busy).length > 0;
   const dis = disabled || busy || (busyKey && anyBusy);
-  return `<button type="${type}" class="btn btn--${kind}${size ? " btn--" + size : ""}" ${action ? `data-action="${action}"` : ""} ${dis ? "disabled" : ""} ${busy ? 'aria-busy="true"' : ""}>
+  const attrs = Object.entries(data).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
+  return `<button type="${type}" class="btn btn--${kind}${size ? " btn--" + size : ""}" ${action ? `data-action="${action}"` : ""}${attrs} ${dis ? "disabled" : ""} ${busy ? 'aria-busy="true"' : ""}>
     ${busy ? '<span class="spinner" aria-hidden="true"></span>' : iconName ? icon(iconName) : ""}<span>${esc(label)}</span></button>`;
 }
 const jobLine = (key) => key in ui.busy
@@ -241,6 +334,7 @@ function viewSidebar(d) {
   const t = d?.target;
   const showNav = t && !ui.editingTarget;
   const nav = showNav ? [
+    ...(d.design_session || ui.scorecard ? [["session", "chat", "Design session", d.design_session ? "live" : "done"]] : []),
     ["today", "today", "Today", d.today_plan?.items.length],
     ["plan", "calendar", "Plan", d.campaign ? `${d.campaign.weeks.length}w` : ""],
     ["readiness", "gauge", "Readiness", d.readiness ? `${d.readiness.overall}%` : ""],
@@ -255,7 +349,7 @@ function viewSidebar(d) {
     ${showNav ? `
       <div class="side-target">
         <span class="label side-meta">Target</span>
-        <div class="side-target__co"><span>${esc(t.company)}</span>
+        <div class="side-target__co"><span>${esc(t.company)} <span class="meta">· ${esc(t.level_label)}</span></span>
           <button type="button" class="icon-btn" data-action="edit-target" aria-label="Change target">${icon("pencil")}</button></div>
         ${t.interview_date ? `<span class="meta mono side-meta">${esc(fmtDate(t.interview_date, { weekday: "short", month: "short", day: "numeric" }))}</span>
           <div class="side-count"><b>${esc(t.days_left)}</b><span class="meta">days to go</span></div>` : ""}
@@ -289,7 +383,7 @@ function viewSetup() {
     <div class="panel panel--focal"><div class="panel__body">
       <div class="stack">
         <h1>${editing ? "Change your target" : "Who are you preparing for?"}</h1>
-        <p class="lead">${editing ? "Switching companies rebuilds the intel and your plan." :
+        <p class="lead">${editing ? "Changing the company or level rebuilds the intel and your plan." :
           "Name the company and the date. The coach learns what they ask, then plans every week until then."}</p>
       </div>
       <form id="target-form" novalidate>
@@ -297,6 +391,19 @@ function viewSetup() {
           <label for="company">Company</label>
           <input class="input" id="company" name="company" autocomplete="organization" value="${esc(t?.company || "")}" required ${busy ? "disabled" : ""} aria-describedby="company-hint">
           <span class="hint" id="company-hint">e.g. Anthropic, Google, Stripe</span>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="level">Level</label>
+            <select class="input" id="level" name="level" ${busy ? "disabled" : ""} aria-describedby="level-hint">
+              ${(ui.data?.levels || []).map((l) => `<option value="${esc(l.id)}"${(t?.level || "mid") === l.id ? " selected" : ""}>${esc(l.label)}</option>`).join("")}
+            </select>
+            <span class="hint" id="level-hint">The loop changes with level: more design and leadership as you go up.</span>
+          </div>
+          <div class="field">
+            <label for="role">Role</label>
+            <input class="input" id="role" name="role" value="${esc(t?.role || "Software Engineer")}" ${busy ? "disabled" : ""}>
+          </div>
         </div>
         <div class="form-row">
           <div class="field">
@@ -308,6 +415,13 @@ function viewSetup() {
             <input class="input mono" type="number" id="daily_minutes" name="daily_minutes" min="10" max="600" step="5" value="${esc(ui.data?.daily_minutes || 60)}" ${busy ? "disabled" : ""}>
           </div>
         </div>
+        <details class="disclose"><summary>${icon("chev", "chev")}Paste the job posting (optional)</summary>
+          <div class="field">
+            <label class="sr-only" for="job_posting">Job posting</label>
+            <textarea class="textarea" id="job_posting" name="job_posting" rows="6" placeholder="Paste the description: level, team and stated focus sharpen the research." ${busy ? "disabled" : ""}></textarea>
+            ${t?.has_job_posting ? '<span class="hint">A posting is saved. Paste a new one to replace it, or leave this empty to keep it.</span>' : ""}
+          </div>
+        </details>
         ${ui.setupError ? `<p class="form-error" role="alert">${esc(ui.setupError)}</p>` : ""}
         <div class="recap__actions">
           ${btn(editing ? "Save target" : "Start preparing", { kind: "primary", type: "submit", busyKey: "setup", disabled: busy })}
@@ -335,7 +449,7 @@ function viewToday(d) {
   const plan = d.today_plan;
   const dayLabel = fmtDate(d.today, { weekday: "long", month: "long", day: "numeric" });
   if (!plan) {
-    return `<section class="panel panel--focal" id="today" aria-labelledby="today-h">
+    return `<section class="panel${d.design_session || ui.scorecard ? "" : " panel--focal"}" id="today" aria-labelledby="today-h">
       <div class="panel__head"><h2 tabindex="-1" id="today-h">Today</h2><span class="meta">${esc(dayLabel)}</span></div>
       <div class="empty">
         <h3>How much time do you have?</h3>
@@ -352,8 +466,11 @@ function viewToday(d) {
       ${st(s)}
       <div>
         <div class="row__title"><span title="${esc(it.title)}">${esc(it.title)}</span>${extLink(it.link, it.title)}</div>
-        <div class="row__sub">${esc(it.topic)} · ${esc(it.difficulty)}${it.source === "company" ? ` · ${esc(d.target?.company || "company")} pick` : ""}</div>
+        <div class="row__sub">${it.track === "system_design" ? "Mock interview · " : ""}${esc(it.topic.replace(/^Design: /, ""))} · ${esc(it.difficulty)}${it.source === "company" ? ` · ${esc(d.target?.company || "company")} pick` : ""}</div>
         ${it.reason ? `<div class="row__sub">${esc(it.reason)}</div>` : ""}
+        ${it.track === "system_design" && s !== "solved" ? `<div class="row__act">${d.design_session?.title === it.title
+          ? btn("Resume session", { action: "goto-session", size: "sm", iconName: "chat" })
+          : btn("Start mock interview", { action: "start-design", size: "sm", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: it.title } })}</div>` : ""}
       </div>
       <div class="row__right">${kindTag(it.kind)}<span class="row__min">${esc(it.estimated_minutes)}m</span></div>
     </li>`;
@@ -370,7 +487,7 @@ function viewToday(d) {
       ${fr.unmatched?.length ? `<p class="meta">Couldn't match: ${esc(fr.unmatched.join(", "))}</p>` : ""}
     </div>` : "";
 
-  return `<section class="panel panel--focal" id="today" aria-labelledby="today-h">
+  return `<section class="panel${d.design_session || ui.scorecard ? "" : " panel--focal"}" id="today" aria-labelledby="today-h">
     <div class="panel__head"><h2 tabindex="-1" id="today-h">Today</h2>
       <span class="meta mono">${esc(plan.items.length)} items · ${esc(plan.total_minutes)}/${esc(plan.minutes)}m</span></div>
     ${plan.coach_note ? `<div class="note"><span class="label">${esc(dayLabel)}</span><p>${esc(plan.coach_note)}</p></div>` : ""}
@@ -389,6 +506,16 @@ function viewToday(d) {
       <div class="row-gap">${minutePicker("custom-min-b")}${btn("Re-plan today", { action: "plan", size: "sm", busyKey: "plan" })}${jobLine("plan")}</div>
     </details>
   </section>`;
+}
+
+/** One bar split by track (minutes), plus a labelled legend. */
+function allocationStrip(alloc) {
+  if (!alloc?.length) return "";
+  const total = alloc.reduce((n, a) => n + a.minutes, 0) || 1;
+  return `<div class="alloc" role="img" aria-label="Time split: ${esc(alloc.map((a) => `${TRACK_LABEL[a.track]} ${fmtMin(a.minutes)}`).join(", "))}">
+    <div class="alloc__bar">${alloc.map((a) => `<i class="t-${a.track}" data-grow="${a.minutes / total}"></i>`).join("")}</div>
+    <div class="alloc__legend">${alloc.map((a) => `<span><i class="t-${a.track}"></i>${esc(TRACK_LABEL[a.track])} <b class="mono">${fmtMin(a.minutes)}</b></span>`).join("")}</div>
+  </div>`;
 }
 
 function viewPlan(d) {
@@ -419,9 +546,10 @@ function viewPlan(d) {
       </button>
       <div class="week__body" id="week-${w.index}" ${open ? "" : "hidden"}>
         ${w.goal ? `<p class="week__goal">${esc(w.goal)}</p>` : ""}
+        ${allocationStrip(w.allocation)}
         ${w.problems.length ? `<ul class="week__list">${w.problems.map((p) => {
           const s = statusOf(p);
-          return `<li class="is-${s}">${st(s)}${titleLink(p)}${kindTag(p.kind)}</li>`;
+          return `<li class="is-${s}">${st(s)}${titleLink(p)}${p.track !== "algorithms" ? `<span class="kind kind--${p.track}">${TRACK_SHORT[p.track]}</span>` : ""}${kindTag(p.kind)}</li>`;
         }).join("")}</ul>` : '<p class="meta">Nothing scheduled.</p>'}
       </div>
     </li>`;
@@ -435,6 +563,70 @@ function viewPlan(d) {
       <div class="legend" aria-hidden="true">${["new", "in_progress", "solved", "due"].map((s) => `<span>${st(s)}${STATUS_LABEL[s]}</span>`).join("")}</div>
       <div class="row-gap">${jobLine("campaign")}${btn("Re-plan from today", { action: "replan", size: "sm", busyKey: "campaign", iconName: "refresh" })}</div>
     </div>
+  </section>`;
+}
+
+// ---- Views: design session -------------------------------------------------
+
+const PHASE_LABEL = { requirements: "Requirements", high_level: "High-level design", deep_dive: "Deep dive", wrap_up: "Wrap-up" };
+
+function viewSession(d) {
+  const sess = d.design_session;
+  if (sess) {
+    const phase = [...sess.transcript].reverse().find((m) => m.role === "interviewer")?.phase;
+    const answers = sess.transcript.filter((m) => m.role === "candidate").length;
+    const msgs = sess.transcript.map((m) => `<li class="msg msg--${m.role}">
+        <span class="msg__who">${m.role === "interviewer" ? "Interviewer" : "You"}</span>
+        <p class="msg__text">${esc(m.text)}</p>
+      </li>`).join("");
+    const confirming = ui.confirmAbandon;
+    return `<section class="panel panel--focal" id="session" aria-labelledby="session-h">
+      <div class="panel__head"><h2 tabindex="-1" id="session-h">Mock interview</h2>
+        <span class="meta mono">${phase ? esc(PHASE_LABEL[phase] || phase) : ""}${sess.hints ? ` · ${plural(sess.hints, "hint")}` : ""}</span></div>
+      <div class="note">
+        <span class="label">${esc(d.target.company)} · ${esc(d.target.level_label)} · ${esc(sess.difficulty || "")}</span>
+        <p>${esc(sess.title)}</p>
+        ${sess.concepts?.length ? `<div class="intel-row__tags">${sess.concepts.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>` : ""}
+      </div>
+      <ol class="transcript" aria-label="Transcript" tabindex="0">${msgs}</ol>
+      <div class="recap">
+        <label class="label" for="design-answer">Your answer</label>
+        <textarea class="textarea textarea--tall" id="design-answer" placeholder="Talk it through as you would out loud: requirements, numbers, components, trade-offs." ${"design" in ui.busy ? "disabled" : ""}>${esc(ui.designDraft)}</textarea>
+        <div class="recap__actions">
+          ${btn("Send", { action: "design-send", kind: "primary", busyKey: "design" })}
+          ${jobLine("design")}
+          <span class="meta hint"><kbd>⌘</kbd> <kbd>↵</kbd> to send</span>
+        </div>
+      </div>
+      <div class="panel__foot">
+        <span class="meta">${answers ? "Finish when you'd wrap up in a real interview; the transcript is graded." : "Answer at least once before finishing."}</span>
+        <div class="row-gap">
+          ${confirming
+            ? `${btn("Abandon, record nothing", { action: "design-abandon-confirm", kind: "ghost", size: "sm" })}${btn("Keep going", { action: "design-abandon-cancel", size: "sm" })}`
+            : `${btn("Abandon", { action: "design-abandon", kind: "ghost", size: "sm", disabled: "design" in ui.busy })}${btn("Finish & score", { action: "design-finish", size: "sm", busyKey: "design", disabled: !answers })}`}
+        </div>
+      </div>
+    </section>`;
+  }
+  const done = ui.scorecard;
+  if (!done?.scorecard) return "";
+  const c = done.scorecard;
+  const [label, kind] = OUTCOME[c.outcome] || [c.outcome, "info"];
+  return `<section class="panel panel--focal" id="session" aria-labelledby="session-h">
+    <div class="panel__head"><h2 tabindex="-1" id="session-h">Scorecard</h2><span class="meta mono">${esc(done.minutes || "")}m</span></div>
+    <div class="note">
+      <span class="label">${esc(done.title)}</span>
+      <p>${esc(c.summary)}</p>
+      <div class="row-gap"><span class="tag tag--${kind}">${esc(label)}</span>${c.next_review ? `<span class="meta mono">review ${esc(fmtDate(c.next_review))}</span>` : ""}</div>
+    </div>
+    <ul class="rubric">${c.scores.map((x) => `<li>
+      <div class="kv"><span>${esc(x.dimension)}</span><b>${esc(x.score)}/4</b></div>
+      <span class="pips" role="img" aria-label="${esc(x.score)} of 4">${[1, 2, 3, 4].map((i) => `<i class="${i <= x.score ? "on" : ""}"></i>`).join("")}</span>
+      <p class="meta">${esc(x.note)}</p>
+    </li>`).join("")}</ul>
+    ${c.weak_concepts?.length ? `<div class="section"><span class="label">Revisit</span><ol class="advice">${c.weak_concepts.map((w) => `<li><span>${esc(w)}</span></li>`).join("")}</ol></div>` : ""}
+    ${c.strengths?.length ? `<div class="section"><span class="label">Strengths</span><div class="intel-row__tags">${c.strengths.map((w) => `<span class="tag tag--success">${esc(w)}</span>`).join("")}</div></div>` : ""}
+    <div class="panel__foot"><span class="meta">Recorded in your history; it comes back for review like any problem.</span>${btn("Done", { action: "dismiss-scorecard", size: "sm" })}</div>
   </section>`;
 }
 
@@ -457,13 +649,21 @@ function viewReadiness(d) {
   return `<section class="panel" id="readiness" aria-labelledby="ready-h">
     <div class="panel__head"><h2 tabindex="-1" id="ready-h">Readiness</h2><span class="meta">for ${esc(d.target.company)}</span></div>
     <div class="panel__body">
-      <div class="ready">
+      <div class="ready ready--rounds">
         <div class="ready__num">${esc(r.overall)}<small>%</small></div>
-        <div class="ready__parts">
-          <div><div class="kv"><span>Problem coverage</span><b>${esc(r.problem_coverage)}%</b></div>${bar(r.problem_coverage / 100)}</div>
-          <div><div class="kv"><span>Topic strength</span><b>${esc(r.topic_strength)}%</b></div>${bar(r.topic_strength / 100)}</div>
-        </div>
+        <p class="meta">Weighted across the rounds the coach can train for a ${esc(d.target.level_label.toLowerCase())} loop.</p>
       </div>
+      <ul class="rounds">${(r.rounds || []).filter((x) => x.score != null).map((x) => `<li class="round">
+        <div class="kv"><span title="${esc(x.description || "")}">${esc(x.name)}${x.count > 1 ? ` <span class="meta">×${x.count}</span>` : ""}</span>
+          <b>${esc(x.score)}%</b></div>
+        <div class="round__meta"><span class="kind kind--${esc(x.track)}">${esc(TRACK_LABEL[x.track] || x.track)}</span><span class="meta mono">${Math.round(x.weight * 100)}% of loop</span></div>
+        ${x.score == null ? "" : bar(x.score / 100, `bar--${x.track}`)}
+      </li>`).join("")}
+      ${(() => {
+        const un = (r.rounds || []).filter((x) => x.score == null);
+        return un.length ? `<li class="round round--untracked"><div class="kv"><span>Not covered yet</span><b class="meta mono">${Math.round(r.untracked_weight * 100)}% of loop</b></div>
+          <p class="meta">${esc(un.map((x) => x.name).join(" · "))}</p></li>` : "";
+      })()}</ul>
       ${r.weak_spots.length ? `<div class="weak"><span class="meta">Weakest where it counts</span>${r.weak_spots.map((w) => `<span class="tag tag--warning">${esc(w)}</span>`).join("")}</div>` : ""}
     </div>
     ${stats}
@@ -478,8 +678,8 @@ function viewIntel(d) {
   const rows = list.map((p, i) => {
     const s = statusOf(p);
     const tags = [
-      p.kind === "practical" ? '<span class="tag tag--accent">Practical</span>' : `<span class="tag">${esc(p.difficulty)}</span>`,
-      p.kind === "practical" ? "" : `<span class="tag">${esc(p.topic)}</span>`,
+      p.kind === "practical" ? '<span class="tag tag--accent">Practical</span>' : p.kind === "design" ? '<span class="tag tag--info">System design</span>' : `<span class="tag">${esc(p.difficulty)}</span>`,
+      p.kind === "practical" ? "" : `<span class="tag">${esc(p.topic.replace(/^Design: /, ""))}</span>`,
       p.from_dataset ? '<span class="tag" title="LeetCode company-tag dataset">Dataset</span>' : "",
       p.from_web ? '<span class="tag tag--info" title="Named in interview write-ups">Reported</span>' : "",
       !p.from_dataset && !p.from_web ? '<span class="tag" title="Trains the same skill">Related</span>' : "",
@@ -490,6 +690,7 @@ function viewIntel(d) {
         <div class="row__title">${st(s)}<span title="${esc(p.title)}">${esc(p.title)}</span>${extLink(p.url || p.link, p.title)}</div>
         ${p.description || p.evidence ? `<div class="intel-row__desc">${esc(p.description || p.evidence)}</div>` : ""}
         <div class="intel-row__tags">${tags}</div>
+        ${p.kind === "design" && s !== "solved" && d.design_session?.title !== p.title ? `<div class="row__act">${btn("Practice", { action: "start-design", size: "sm", kind: "ghost", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: p.title } })}</div>` : ""}
       </div>
       <div class="intel-row__w" title="Importance for ${esc(d.target.company)}">${Number(p.weight).toFixed(2)}${bar(p.weight, "bar--muted")}</div>
     </li>`;
@@ -498,6 +699,12 @@ function viewIntel(d) {
   const ds = c.sources.filter((s) => s.kind === "dataset");
   return `<section class="panel" id="intel" aria-labelledby="intel-h">
     <div class="panel__head"><h2 tabindex="-1" id="intel-h">What ${esc(d.target.company)} asks</h2><span class="meta mono">${esc(c.problems.length)} problems</span></div>
+    ${c.stale_level ? `<div class="note note--warn" role="status"><p class="meta">This intel was gathered for a different level. Refresh it for ${esc(d.target.level_label)}.</p>${btn("Refresh for " + d.target.level_label, { action: "research", size: "sm", busyKey: "research", iconName: "refresh" })}</div>` : ""}
+    ${c.rounds?.length ? `<div class="note"><span class="label">Interview loop · ${esc(d.target.level_label)}</span><ol class="loop">${c.rounds.map((x) => `<li>
+        <span class="loop__name">${esc(x.name)}${x.count > 1 ? ` <span class="meta">×${x.count}</span>` : ""}</span>
+        <span class="kind kind--${esc(x.track)}">${PRACTICE_TRACKS.includes(x.track) ? esc(TRACK_LABEL[x.track]) : `${esc(TRACK_LABEL[x.track] || x.track)} · no track`}</span>
+        ${x.description ? `<span class="loop__desc">${esc(x.description)}</span>` : ""}
+      </li>`).join("")}</ol></div>` : ""}
     ${c.interview_format ? `<div class="note"><span class="label">Interview format</span><p class="format__text${ui.showFormat ? " is-open" : ""}">${esc(c.interview_format)}</p>
       <button type="button" class="btn btn--ghost btn--sm" data-action="toggle-format">${ui.showFormat ? "Less" : "Read more"}</button></div>` : ""}
     ${c.problems.length ? `<ol class="rows">${rows}</ol>` : `<div class="empty"><p>No specific problems found yet.</p></div>`}
@@ -506,7 +713,7 @@ function viewIntel(d) {
       <ol class="advice">${c.advice.map((a) => `<li><span>${esc(a)}</span></li>`).join("")}</ol></details></div>` : ""}
     <div class="section">
       <details class="disclose"><summary>${icon("chev", "chev")}Sources · ${esc(plural(ds.length, "dataset"))}, ${esc(plural(web.length, "web report"))}</summary>
-        <ul class="sources">${[...ds, ...web].map((s) => {
+        <ul class="sources" aria-label="Sources" tabindex="0">${[...ds, ...web].map((s) => {
           const u = safeUrl(s.url);
           return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}">${esc(s.title || u)}</a>` : esc(s.title)}${s.status ? ` <span class="meta">· ${esc(s.status)}</span>` : ""}</li>`;
         }).join("")}</ul>
@@ -535,15 +742,51 @@ function viewTopics(d) {
   </section>`;
 }
 
+function viewLeetCode(d) {
+  const lc = d.leetcode;
+  if (!lc) {
+    return `<div class="note lc">
+      <span class="label" id="lc-h">LeetCode</span>
+      <p class="meta">Link your public profile: solves sync automatically and your history calibrates the plan. Read-only, no password.</p>
+      <div class="lc__form">
+        <label class="sr-only" for="lc-username">LeetCode username</label>
+        <input class="input" id="lc-username" placeholder="username" autocomplete="off" spellcheck="false" value="${esc(ui.lcUsername)}" ${"leetcode" in ui.busy ? "disabled" : ""}>
+        ${btn("Link", { action: "lc-link", size: "sm", busyKey: "leetcode" })}
+      </div>
+      ${jobLine("leetcode")}
+    </div>`;
+  }
+  const s = lc.solved || {};
+  return `<div class="note lc">
+    <div class="lc__head"><span class="row-gap"><span class="label" id="lc-h">LeetCode</span><a class="mono lc__user" href="${esc(safeUrl(`https://leetcode.com/u/${lc.username}/`))}" target="_blank" rel="noopener noreferrer">@${esc(lc.username)}</a></span>
+      <span class="row-gap">${jobLine("leetcode")}${btn("Sync", { action: "lc-sync", kind: "ghost", size: "sm", busyKey: "leetcode", iconName: "refresh" })}${btn("Unlink", { action: "lc-unlink", kind: "ghost", size: "sm", disabled: "leetcode" in ui.busy })}</span></div>
+    <div class="lc__stats" aria-label="Lifetime solved on LeetCode">
+      <div><b class="mono">${esc(s.All ?? 0)}</b><span class="meta">solved</span></div>
+      <div><b class="mono">${esc(s.Easy ?? 0)}</b><span class="meta">easy</span></div>
+      <div><b class="mono">${esc(s.Medium ?? 0)}</b><span class="meta">medium</span></div>
+      <div><b class="mono">${esc(s.Hard ?? 0)}</b><span class="meta">hard</span></div>
+    </div>
+    ${lc.tags?.length ? `<div class="intel-row__tags">${lc.tags.map((t) => `<span class="tag">${esc(t.tag)} <span class="mono">${esc(t.solved)}</span></span>`).join("")}</div>` : ""}
+    <p class="meta">Synced ${esc(ago(lc.synced_at))}${lc.last_added?.length ? ` · logged ${esc(lc.last_added.join(", "))}` : ""}${lc.last_other?.length ? ` · <span title="${esc(lc.last_other.join(", "))}">${esc(plural(lc.last_other.length, "other recent solve"))} not on your plan</span>` : ""}</p>
+  </div>`;
+}
+
 function viewActivity(d) {
   const act = d.activity;
   const due = d.due_reviews;
   return `<section class="panel" id="activity" aria-labelledby="act-h">
     <div class="panel__head"><h2 tabindex="-1" id="act-h">Activity</h2>${due.length ? `<span class="meta mono">${due.length} due</span>` : ""}</div>
+    ${viewLeetCode(d)}
+    ${(d.design_scorecards || []).length ? `<div class="note"><span class="label" id="mock-h">Mock interviews</span><ul class="rows activity activity--mock" aria-labelledby="mock-h">${d.design_scorecards.map((c) => {
+      const sc = c.scorecard || {};
+      const [label, kind, st2] = OUTCOME[sc.outcome] || [sc.outcome || "", "info", "new"];
+      const avg = sc.scores?.length ? (sc.scores.reduce((n, x) => n + x.score, 0) / sc.scores.length).toFixed(1) : "–";
+      return `<li>${st(st2)}<span class="t" title="${esc(c.title)}">${esc(c.title)}</span><span class="row-gap"><span class="meta mono" title="Average rubric score">${avg}/4</span><span class="tag tag--${kind}">${esc(label)}</span>${btn("Scorecard", { action: "show-scorecard", kind: "ghost", size: "sm", data: { id: c.id } })}</span></li>`;
+    }).join("")}</ul></div>` : ""}
     ${due.length ? `<div class="note"><span class="label">Reviews due</span><ul class="week__list">${due.map((p) => `<li>${st("due")}${titleLink(p)}</li>`).join("")}</ul></div>` : ""}
-    ${act.length ? `<ul class="rows activity">${act.slice(0, 8).map((a) => {
+    ${act.length ? `<ul class="rows activity activity--recent" aria-label="Recent practice">${act.slice(0, 8).map((a) => {
       const [label, kind, s] = OUTCOME[a.outcome] || [a.outcome, "info", "new"];
-      return `<li>${st(s)}<span class="t" title="${esc(a.title)}">${esc(a.title)}</span><span class="row-gap"><span class="tag tag--${kind}">${esc(label)}</span><time datetime="${esc(a.date)}">${esc(fmtDate(a.date))}</time></span></li>`;
+      return `<li>${st(s)}<span class="t" title="${esc(a.title)}">${esc(a.title)}</span><span class="row-gap">${a.source === "leetcode" ? '<span class="tag" title="Logged from your LeetCode accepted submissions">LeetCode</span>' : ""}<span class="tag tag--${kind}">${esc(label)}</span><time datetime="${esc(a.date)}">${esc(fmtDate(a.date))}</time></span></li>`;
     }).join("")}</ul>` : `<div class="empty"><p>Nothing logged yet. Plan a session, then tell the coach how it went.</p></div>`}
   </section>`;
 }
@@ -579,13 +822,16 @@ function render() {
     app.innerHTML = viewSetup();
   } else {
     app.className = "work";
-    app.innerHTML = `<section class="col">${viewToday(d)}${viewPlan(d)}${viewActivity(d)}</section>
+    app.innerHTML = `<section class="col">${viewSession(d)}${viewToday(d)}${viewPlan(d)}${viewActivity(d)}</section>
       <section class="col">${viewReadiness(d)}${viewIntel(d)}${viewTopics(d)}</section>`;
     observeSections();
   }
   // CSP forbids inline style attributes; set bar widths through the CSSOM.
   document.querySelectorAll("[data-pct]").forEach((el) => el.style.setProperty("--pct", el.dataset.pct));
   document.querySelectorAll("[data-mark]").forEach((el) => el.style.setProperty("--mark", el.dataset.mark));
+  document.querySelectorAll("[data-grow]").forEach((el) => el.style.setProperty("--grow", el.dataset.grow));
+  const t = document.querySelector(".transcript");
+  if (t) t.scrollTop = t.scrollHeight; // newest message in view
 }
 
 // ---- Sidebar highlight ------------------------------------------------------
@@ -594,7 +840,7 @@ function render() {
 // so position alone can't tell which one you meant. Scrolling by hand releases
 // that choice and the highlight follows the last panel whose top has passed
 // under the toolbar, ties going to the earlier sidebar item.
-const NAV_ORDER = ["today", "plan", "readiness", "intel", "topics", "activity"];
+const NAV_ORDER = ["session", "today", "plan", "readiness", "intel", "topics", "activity"];
 let navLock = null;
 
 function setCurrent(id) {
@@ -608,7 +854,8 @@ function setCurrent(id) {
 function spy() {
   if (navLock) return;
   const line = ($("#toolbar")?.getBoundingClientRect().bottom || 48) + 24;
-  let best = NAV_ORDER[0];
+  // Default to the first section that exists (the session panel only exists while one is open).
+  let best = NAV_ORDER.find((id) => document.getElementById(id)) || NAV_ORDER[0];
   let bestTop = -Infinity;
   for (const id of NAV_ORDER) {
     const el = document.getElementById(id);
@@ -623,7 +870,7 @@ function spy() {
       const r = document.getElementById(id)?.getBoundingClientRect();
       return r && r.top < window.innerHeight && r.bottom > line;
     });
-    const left = visible.filter((id) => ["today", "plan", "activity"].includes(id));
+    const left = visible.filter((id) => ["session", "today", "plan", "activity"].includes(id));
     if (left.length) best = left[left.length - 1];
   }
   if (best !== ui.navCurrent) setCurrent(best);
@@ -692,6 +939,22 @@ document.addEventListener("click", (e) => {
     $(`#week-${n}`).hidden = open;
   }
   else if (a === "toggle-problems") { ui.showAllProblems = !ui.showAllProblems; render(); }
+  else if (a === "start-design") startDesign(el.dataset.title);
+  else if (a === "goto-session") goTo("session");
+  else if (a === "design-send") sendDesign();
+  else if (a === "design-finish") finishDesign();
+  else if (a === "design-abandon") { ui.confirmAbandon = true; render(); }
+  else if (a === "design-abandon-cancel") { ui.confirmAbandon = false; render(); }
+  else if (a === "design-abandon-confirm") { ui.confirmAbandon = false; abandonDesign(); }
+  else if (a === "show-scorecard") {
+    ui.scorecard = (ui.data.design_scorecards || []).find((c) => c.id === el.dataset.id) || null;
+    render();
+    goTo("session");
+  }
+  else if (a === "dismiss-scorecard") { ui.scorecard = null; render(); }
+  else if (a === "lc-link") linkLeetCode();
+  else if (a === "lc-sync") syncLeetCode();
+  else if (a === "lc-unlink") unlinkLeetCode();
   else if (a === "toggle-format") { ui.showFormat = !ui.showFormat; render(); }
   else if (a === "toggle-topics") { ui.showAllTopics = !ui.showAllTopics; render(); }
   else if (a === "edit-target") { ui.editingTarget = true; ui.setupError = null; render(); $("#company")?.focus(); }
@@ -706,6 +969,8 @@ document.addEventListener("click", (e) => {
 
 document.addEventListener("input", (e) => {
   if (e.target.id === "recap") ui.recap = e.target.value;
+  if (e.target.id === "design-answer") ui.designDraft = e.target.value;
+  if (e.target.id === "lc-username") ui.lcUsername = e.target.value;
   if (e.target.classList?.contains("custom-min")) {
     const v = Number(e.target.value);
     if (v) { ui.minutes = v; ui.minutesTouched = true; syncMinutes(); }
@@ -719,6 +984,9 @@ document.addEventListener("submit", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && ui.editingTarget && ui.data?.target && !Object.keys(ui.busy).length) { ui.editingTarget = false; render(); }
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && e.target.id === "recap") { e.preventDefault(); sendRecap(); }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && e.target.id === "design-answer") { e.preventDefault(); sendDesign(); }
+  if (e.key === "Enter" && e.target.id === "lc-username") { e.preventDefault(); linkLeetCode(); }
+  if (e.key === "Escape" && ui.confirmAbandon) { ui.confirmAbandon = false; render(); }
 });
 
 // ---- Theme -----------------------------------------------------------------

@@ -47,6 +47,21 @@ def apply_attempt(record: ProblemRecord, attempt: Attempt, today: date) -> None:
     record.next_review = (today + timedelta(days=record.interval_days)).isoformat()
 
 
+def rebuild(record: ProblemRecord) -> None:
+    """Recompute the review schedule from scratch by replaying every attempt.
+
+    Used when an attempt is replaced (e.g. a recap supersedes a synced solve),
+    so the interval and streak reflect the final history, not both versions.
+    """
+    attempts = list(record.attempts)
+    record.attempts = []
+    record.review_streak = 0
+    record.interval_days = 0
+    record.next_review = None
+    for a in attempts:
+        apply_attempt(record, a, date.fromisoformat(a.date))
+
+
 def is_due(record: ProblemRecord, today: date) -> bool:
     if not record.next_review:
         return False

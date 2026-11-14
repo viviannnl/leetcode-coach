@@ -1,0 +1,93 @@
+{
+  "id": "3eedbdca095e",
+  "title": "Design a Key-Value Store",
+  "topic": "Design: Foundations",
+  "difficulty": "Medium",
+  "concepts": [
+    "partitioning",
+    "replication",
+    "quorum consistency",
+    "conflict resolution"
+  ],
+  "status": "finished",
+  "started": "2026-11-14T12:49:23",
+  "date": "2026-11-14",
+  "hints": 0,
+  "transcript": [
+    {
+      "role": "interviewer",
+      "text": "Thanks for joining. Today I'd like you to design a distributed key-value store, something like DynamoDB or Cassandra, that supports basic get and put operations and is spread across many machines. Before jumping into architecture, walk me through how you'd scope it: what requirements and scale assumptions would you want to pin down first?",
+      "phase": "requirements"
+    },
+    {
+      "role": "candidate",
+      "text": "Functional: put(key, value), get(key), delete(key). Values up to 1MB, keys up to 256 bytes. Non-functional: ~100k reads/s and 20k writes/s, p99 under 10ms, 10TB total, highly available, eventual consistency is acceptable for most clients but some want read-your-writes."
+    },
+    {
+      "role": "interviewer",
+      "text": "Good, that's a well-scoped set of numbers. One thing to pin down before we move on: when a network partition splits your cluster, should a write that can't reach all its replicas still succeed, or be rejected? How does that choice square with the clients who want read-your-writes?",
+      "phase": "requirements"
+    },
+    {
+      "role": "candidate",
+      "text": "High level: clients hit a stateless routing layer that uses consistent hashing with virtual nodes to pick a partition. Each partition is replicated 3x across zones with a leader handling writes and appending to a WAL, then an LSM-tree storage engine (memtable plus SSTables with compaction). Reads can go to followers for eventual consistency or the leader for read-your-writes. Failure: a heartbeat-based membership service promotes a new leader when one dies; hinted handoff covers temporary node loss."
+    },
+    {
+      "role": "interviewer",
+      "text": "That's a solid skeleton, and the LSM choice fits your write-heavy numbers. You skipped my partition question, though, so let's approach it through your design. When does the leader acknowledge a write to the client: after its own WAL append, or after some number of followers confirm? Then walk me through what happens to that acknowledged write if the leader dies a moment later and a follower gets promoted.",
+      "phase": "high_level"
+    }
+  ],
+  "finished": "2026-11-14T12:50:02",
+  "minutes": 1,
+  "scorecard": {
+    "scores": [
+      {
+        "dimension": "Requirements & scope",
+        "score": 3,
+        "note": "The candidate quickly set concrete targets (100k reads/s, 20k writes/s, p99 under 10ms, 10TB, 1MB values, read-your-writes for some clients), but skipped the interviewer's direct question about whether writes should succeed or be rejected during a network partition."
+      },
+      {
+        "dimension": "API & data model",
+        "score": 2,
+        "note": "The API was only put/get/delete with size limits, with no versioning or timestamps on values, no per-request consistency option, and no conditional writes, even though some clients need read-your-writes."
+      },
+      {
+        "dimension": "High-level architecture",
+        "score": 3,
+        "note": "The design covered a stateless router with consistent hashing and virtual nodes, 3x cross-zone replication with a leader, a WAL, LSM storage, and heartbeat-based failover, but it mixed in hinted handoff, a mechanism from leaderless Dynamo-style designs, without explaining how it fits a leader-based model."
+      },
+      {
+        "dimension": "Scaling & bottlenecks",
+        "score": 2,
+        "note": "There was no capacity math (10TB x3 replicas \u2192 node count), and nothing on hot keys, rebalancing when nodes join, compaction's effect on the 10ms p99, or the durability gap the interviewer was probing about when writes are acknowledged."
+      },
+      {
+        "dimension": "Trade-offs & communication",
+        "score": 2,
+        "note": "The candidate answered the CAP partition question with an architecture dump instead, so the interviewer had to say 'You skipped my partition question' and rephrase it around write acknowledgment and failover, and the session ended without that trade-off being addressed."
+      }
+    ],
+    "outcome": "solved_with_hints",
+    "summary": "You set strong, quantified requirements and sketched a credible leader-based architecture with consistent hashing, cross-zone replication, and an LSM engine well matched to your workload. However, you sidestepped the core consistency question (what happens to writes during a partition or right after a failover), and the interviewer had to redirect you, so quorum consistency and conflict resolution were never covered.",
+    "strengths": [
+      "Concrete, well-quantified functional and non-functional requirements up front",
+      "Sensible partitioning choice (consistent hashing with virtual nodes)",
+      "Storage engine choice (WAL + LSM) justified implicitly by write-heavy load",
+      "Cross-zone replication and an explicit failure-handling story (membership service, leader promotion)"
+    ],
+    "weak_concepts": [
+      "CAP behavior under network partition: rejecting writes (CP) vs accepting them (AP), and stating the choice explicitly",
+      "Synchronous vs asynchronous replication acks and their durability/latency cost",
+      "Losing acknowledged writes when an async-replicated leader fails over",
+      "Quorum reads/writes (R + W > N) as a tunable consistency mechanism",
+      "Conflict resolution and versioning (vector clocks, last-write-wins, sibling values)",
+      "Split-brain prevention during leader election (epochs/terms, fencing tokens)",
+      "Preserving read-your-writes across leader failover",
+      "Hinted handoff in leaderless vs leader-based replication",
+      "Hot-key mitigation and rebalancing when nodes join or leave",
+      "Compaction's impact on tail latency"
+    ],
+    "next_review": "2026-11-16"
+  }
+}

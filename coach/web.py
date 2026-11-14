@@ -25,7 +25,7 @@ from typing import Any, Callable
 
 from flask import Flask, abort, jsonify, request, send_from_directory
 
-from . import llm
+from . import leetcode, llm
 from .coach import Coach
 from .store import Store
 
@@ -56,7 +56,7 @@ class Jobs:
                 try:
                     result = fn(progress)
                     update = {"status": "done", "result": result}
-                except (llm.LLMError, RuntimeError, ValueError) as exc:
+                except (llm.LLMError, leetcode.LeetCodeError, RuntimeError, ValueError) as exc:
                     update = {"status": "error", "error": str(exc)}
                 except Exception as exc:  # pragma: no cover - surfaced to UI
                     update = {"status": "error", "error": f"Unexpected error: {exc}"}
@@ -126,9 +126,20 @@ def create_app(state_path: Path | None = None) -> Flask:
             c = coach()
             if not c.is_initialized():
                 c.initialize("neetcode-150")
-            c.set_target(company, data.get("interview_date") or None, data.get("daily_minutes"))
-        except ValueError:
-            return jsonify({"error": "Interview date must look like 2026-12-25."}), 400
+            posting = data.get("job_posting")
+            if isinstance(posting, str) and len(posting) > 20000:
+                return jsonify({"error": "That job posting is very long — paste just the description."}), 400
+            c.set_target(
+                company,
+                data.get("interview_date") or None,
+                data.get("daily_minutes"),
+                level=data.get("level") or None,
+                role=data.get("role") or None,
+                job_posting=posting if isinstance(posting, str) else None,
+            )
+        except ValueError as exc:
+            msg = str(exc) if "level" in str(exc) else "Interview date must look like 2026-12-25."
+            return jsonify({"error": msg}), 400
         return jsonify({"ok": True})
 
     @app.post("/api/research")
@@ -168,6 +179,59 @@ def create_app(state_path: Path | None = None) -> Flask:
             return coach().record_feedback(text)
 
         return jsonify({"job": jobs.start("feedback", run)})
+
+    # ---- system design sessions ------------------------------------------ #
+
+    def _session_payload(sess):
+        return {k: sess[k] for k in ("id", "title", "topic", "difficulty", "concepts", "status", "started", "hints", "transcript", "scorecard", "minutes") if k in sess}
+
+    @app.post("/api/design/start")
+    def api_design_start():
+        title = str(body().get("title", "")).strip()
+        if not title:
+            return jsonify({"error": "Pick a design problem."}), 400
+        return jsonify({"job": jobs.start("design", lambda p: _session_payload(coach().start_design_session(title, p)))})
+
+    @app.post("/api/design/reply")
+    def api_design_reply():
+        data = body()
+        sid, text = str(data.get("session", "")), str(data.get("text", "")).strip()
+        if not text:
+            return jsonify({"error": "Write your answer first."}), 400
+        if len(text) > 8000:
+            return jsonify({"error": "That answer is very long — split it into a few messages."}), 400
+        return jsonify({"job": jobs.start("design", lambda p: _session_payload(coach().reply_design_session(sid, text, p)))})
+
+    @app.post("/api/design/finish")
+    def api_design_finish():
+        sid = str(body().get("session", ""))
+        return jsonify({"job": jobs.start("design", lambda p: _session_payload(coach().finish_design_session(sid, p)))})
+
+    @app.post("/api/design/abandon")
+    def api_design_abandon():
+        try:
+            coach().abandon_design_session(str(body().get("session", "")))
+        except (RuntimeError, ValueError) as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"ok": True})
+
+    # ---- LeetCode profile ------------------------------------------------ #
+
+    @app.post("/api/leetcode")
+    def api_leetcode_link():
+        username = str(body().get("username", "")).strip().lstrip("@")
+        if not leetcode.valid_username(username):
+            return jsonify({"error": "That doesn't look like a LeetCode username (letters, digits, - and _)."}), 400
+        return jsonify({"job": jobs.start("leetcode", lambda p: coach().link_leetcode(username, p))})
+
+    @app.post("/api/leetcode/sync")
+    def api_leetcode_sync():
+        return jsonify({"job": jobs.start("leetcode", lambda p: coach().sync_leetcode(p))})
+
+    @app.post("/api/leetcode/unlink")
+    def api_leetcode_unlink():
+        coach().unlink_leetcode()
+        return jsonify({"ok": True})
 
     @app.get("/api/jobs/<job_id>")
     def api_job(job_id: str):

@@ -444,3 +444,97 @@ html { scroll-behavior: smooth; }
 /* Light theme: teal accent-600 doesn't reach 4.5:1 under white button text
    (axe flagged it), so primary fills step one shade darker. */
 :root:not([data-theme="dark"]) { --accent: var(--accent-700); --accent-hover: var(--accent-800); }
+
+/* ---- Tracks ---------------------------------------------------------------
+   Categorical colours for practice tracks. Hues are spaced ≥ 90° apart and
+   away from the status hues' meanings; text variants clear 4.5:1 on panels. */
+:root {
+  --track-algorithms: var(--accent-600);
+  --track-practical: oklch(0.62 0.15 70);
+  --track-system_design: oklch(0.56 0.18 320);
+  --track-algorithms-text: var(--accent-700);
+  --track-practical-text: oklch(0.50 0.13 70);
+  --track-system_design-text: oklch(0.50 0.18 320);
+}
+:root[data-theme="dark"] {
+  --track-algorithms: oklch(0.78 0.12 195);
+  --track-practical: oklch(0.80 0.13 75);
+  --track-system_design: oklch(0.74 0.15 320);
+  --track-algorithms-text: var(--track-algorithms);
+  --track-practical-text: var(--track-practical);
+  --track-system_design-text: var(--track-system_design);
+}
+.kind--algorithms { color: var(--track-algorithms-text); }
+.kind--practical { color: var(--track-practical-text); }
+.kind--system_design { color: var(--track-system_design-text); }
+.kind--behavioral, .kind--code_review, .kind--other { color: var(--text-muted); }
+
+.alloc { margin: 0 0 var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); max-width: 32rem; }
+.alloc__bar { display: flex; gap: 2px; height: 0.375rem; border-radius: var(--radius-full); overflow: hidden; }
+.alloc__bar i { flex: var(--grow, 1) 1 0; min-width: 2px; }
+.alloc__legend { display: flex; flex-wrap: wrap; gap: var(--sp-4); font-size: var(--text-xs); color: var(--text-muted); }
+.alloc__legend span { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.alloc__legend i { width: 0.5rem; height: 0.5rem; border-radius: 2px; }
+.alloc__legend b { color: var(--text); font-weight: var(--weight-medium); }
+.t-algorithms { background: var(--track-algorithms); }
+.t-practical { background: var(--track-practical); }
+.t-system_design { background: var(--track-system_design); }
+
+/* ---- Readiness by round --------------------------------------------------- */
+.ready--rounds { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+.rounds { list-style: none; margin: var(--sp-4) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.round .kv { margin-bottom: 0.125rem; color: var(--text); font-size: var(--text-sm); }
+.round .kv > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.round__meta { display: flex; gap: var(--sp-3); align-items: center; margin-bottom: var(--sp-1); }
+.round--untracked .kv > span { color: var(--text-muted); }
+
+/* ---- Interview loop ------------------------------------------------------- */
+.loop { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); counter-reset: loop; }
+.loop li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto; gap: 0 var(--sp-2); align-items: baseline; }
+.loop li::before { counter-increment: loop; content: counter(loop, decimal-leading-zero); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-subtle); }
+.loop__name { font-weight: var(--weight-medium); color: var(--text); min-width: 0; }
+.loop__desc { grid-column: 2 / -1; color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-snug); }
+.note--warn { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; background: color-mix(in srgb, var(--warning) 8%, transparent); }
+
+/* ---- Design session ------------------------------------------------------- */
+.row__act { margin-top: var(--sp-2); }
+.transcript { list-style: none; margin: 0; padding: var(--sp-2) 0; max-height: 28rem; overflow-y: auto; border-bottom: var(--hair); }
+.msg { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
+.msg__who { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--text-muted); padding-top: 2px; }
+.msg--interviewer .msg__who { color: var(--track-system_design-text); }
+.msg__text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: var(--leading-normal); max-width: var(--measure); }
+.msg--candidate { background: color-mix(in srgb, var(--surface-hover) 40%, transparent); }
+.textarea--tall { min-height: 8rem; }
+
+.rubric { list-style: none; margin: 0; padding: var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.rubric .kv { color: var(--text); font-size: var(--text-sm); margin-bottom: var(--sp-1); }
+.pips { display: flex; gap: 3px; margin-bottom: var(--sp-1); }
+.pips i { width: 2.5rem; height: 0.375rem; border-radius: 1px; background: var(--border-strong); }
+.pips i.on { background: var(--track-system_design); }
+
+select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 55%, calc(100% - 0.7rem) 55%; background-size: 0.3rem 0.3rem; background-repeat: no-repeat; padding-right: var(--sp-6); }
+@media (max-width: 52rem) {
+  .msg { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); }
+  .pips i { width: 1.75rem; }
+}
+.bar--algorithms .bar__fill { background: var(--track-algorithms); }
+.bar--practical .bar__fill { background: var(--track-practical); }
+.bar--system_design .bar__fill { background: var(--track-system_design); }
+/* Scrollable regions are focusable so keyboard users can scroll them. */
+.transcript:focus-visible, .sources:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--radius-sm); }
+/* Light theme: muted counts sit on the hover/current tint, where --text-muted
+   only reaches ~3.7:1 — one step darker clears 4.5:1. */
+:root:not([data-theme="dark"]) .nav a .count { color: var(--n-600); }
+
+/* ---- LeetCode profile ------------------------------------------------------ */
+.lc { display: flex; flex-direction: column; gap: var(--sp-3); }
+.lc .label { margin-bottom: 0; }
+.lc__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; }
+.lc__form { display: flex; gap: var(--sp-2); max-width: 22rem; }
+.lc__form .input { min-height: 1.625rem; padding: 0 var(--sp-2); font-family: var(--font-mono); font-size: var(--text-xs); }
+.lc__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); }
+.lc__stats div { display: flex; flex-direction: column; }
+.lc__stats b { font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--text); }
+.lc .tag .mono { color: var(--text); }
+.lc__user { font-size: var(--text-xs); }
