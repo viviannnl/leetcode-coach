@@ -112,6 +112,8 @@ class State:
     # Linked public LeetCode profile: {username, synced_at, last_seen_ts,
     # solved, tags, last_added, last_other}. None when not linked.
     leetcode: dict[str, Any] | None = None
+    # Interface + generated-content language: "en" or "zh".
+    language: str = "en"
 
     def record_for(self, title: str, topic: str) -> ProblemRecord:
         rec = self.records.get(title)
@@ -144,6 +146,7 @@ class Store:
             target=_target_from_dict(raw["target"]) if raw.get("target") else None,
             daily_minutes=raw.get("daily_minutes", 60),
             leetcode=raw.get("leetcode"),
+            language=raw.get("language", "en"),
         )
 
     def save(self, state: State) -> None:
@@ -155,6 +158,7 @@ class Store:
             "target": asdict(state.target) if state.target else None,
             "daily_minutes": state.daily_minutes,
             "leetcode": state.leetcode,
+            "language": state.language,
         }
         # Write atomically so a crash mid-write can't corrupt history.
         tmp = self.path.with_suffix(".json.tmp")

@@ -31,9 +31,8 @@ const STATUS_SVG = {
   solved: '<circle cx="7" cy="7" r="6.25" fill="currentColor"/><path class="ck" d="M4.4 7.2 6.2 9l3.4-3.8" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   due: '<circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.4 1.9"/><circle cx="7" cy="7" r="1.9" fill="currentColor"/>',
 };
-const STATUS_LABEL = { new: "Not started", in_progress: "In progress", solved: "Solved", due: "Review due" };
 const statusOf = (p) => (p.due ? "due" : p.status || "new");
-const st = (s) => `<svg class="st st--${s}" viewBox="0 0 14 14" role="img" aria-label="${STATUS_LABEL[s]}">${STATUS_SVG[s]}</svg>`;
+const st = (s) => `<svg class="st st--${s}" viewBox="0 0 14 14" role="img" aria-label="${tv("status", s)}">${STATUS_SVG[s]}</svg>`;
 
 function esc(v) {
   return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -47,34 +46,35 @@ function safeUrl(u) {
 function fmtDate(iso, opts = { month: "short", day: "numeric" }) {
   if (!iso) return "";
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, { ...opts, timeZone: "UTC" });
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(dateLocale(), { ...opts, timeZone: "UTC" });
 }
 function fmtRange(a, b) {
   const sameMonth = a.slice(0, 7) === b.slice(0, 7);
   return `${fmtDate(a)}–${sameMonth ? Number(b.slice(8, 10)) : fmtDate(b)}`;
 }
-const TRACK_LABEL = { algorithms: "Algorithms", practical: "Practical coding", system_design: "System design", behavioral: "Behavioral", code_review: "Code review", other: "Other" };
-const TRACK_SHORT = { algorithms: "ALG", practical: "PRAC", system_design: "DESIGN" };
 const PRACTICE_TRACKS = ["algorithms", "practical", "system_design"];
-const fmtMin = (m) => (m >= 60 ? `${(m / 60).toFixed(m % 60 ? 1 : 0)}h` : `${m}m`);
+const fmtMin = (m) => (m >= 60 ? t("presetHour", (m / 60).toFixed(m % 60 ? 1 : 0)) : t("presetMin", m));
 function ago(iso) {
-  if (!iso) return "never";
+  if (!iso) return t("never");
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
+  if (mins < 1) return t("justNow");
+  if (mins < 60) return t("minAgo", mins);
   const h = Math.round(mins / 60);
-  return h < 24 ? `${h} h ago` : fmtDate(iso.slice(0, 10));
+  return h < 24 ? t("hAgo", h) : fmtDate(iso.slice(0, 10));
 }
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const pad2 = (n) => String(n).padStart(2, "0");
-const OUTCOME = {
-  solved_independently: ["Solved", "success", "solved"],
-  solved_with_hints: ["With hints", "info", "solved"],
-  viewed_solution: ["Read solution", "warning", "in_progress"],
-  gave_up: ["Gave up", "danger", "in_progress"],
-  reviewed_easily: ["Reviewed", "success", "solved"],
-  struggled: ["Struggled", "warning", "in_progress"],
+// outcome -> [tag colour, status glyph]; the label comes from i18n.
+const OUTCOME_STYLE = {
+  solved_independently: ["success", "solved"],
+  solved_with_hints: ["info", "solved"],
+  viewed_solution: ["warning", "in_progress"],
+  gave_up: ["danger", "in_progress"],
+  reviewed_easily: ["success", "solved"],
+  struggled: ["warning", "in_progress"],
 };
+const outcome = (o) => [tv("outcome", o || ""), ...(OUTCOME_STYLE[o] || ["info", "new"])];
+const topicName = (topic) => tv("topicNames", topic);
+const levelName = (target) => tv("levels", target.level) || target.level_label;
 
 // ---- State -----------------------------------------------------------------
 
@@ -107,7 +107,7 @@ async function api(path, payload) {
   };
   const res = await fetch(path, opts);
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
+  if (!res.ok) throw new Error(json.error || t("requestFailed", res.status));
   return json;
 }
 
@@ -115,6 +115,7 @@ async function load() {
   try {
     ui.data = await api("/api/dashboard");
     ui.loadError = null;
+    if (ui.data.language && ui.data.language !== LANG) setLang(ui.data.language);
     if (!ui.minutesTouched) ui.minutes = ui.data.today_plan?.minutes || ui.data.daily_minutes || 60;
   } catch (e) {
     ui.loadError = e.message;
@@ -133,7 +134,7 @@ function setBusy(key, msg) {
 
 /** POST to start a background job, poll until it ends. Resolves with its result. */
 async function runJob(key, path, payload = {}) {
-  setBusy(key, "Starting…");
+  setBusy(key, t("starting"));
   try {
     const { job } = await api(path, payload);
     for (;;) {
@@ -169,11 +170,11 @@ async function saveTarget(form) {
     role: String(fd.get("role") || "").trim() || null,
     job_posting: fd.has("job_posting") ? String(fd.get("job_posting") || "") : null,
   };
-  if (!payload.company) { ui.setupError = "Which company are you preparing for?"; render(); $("#company")?.focus(); return; }
+  if (!payload.company) { ui.setupError = t("errCompany"); render(); $("#company")?.focus(); return; }
   ui.setupError = null;
   const prev = ui.data?.target?.company;
   try {
-    setBusy("setup", "Saving your target…");
+    setBusy("setup", t("savingTarget"));
     await api("/api/target", payload);
     ui.editingTarget = false;
     await load();
@@ -192,7 +193,7 @@ async function saveTarget(form) {
 async function research({ thenCampaign = false } = {}) {
   try {
     const r = await runJob("research", "/api/research");
-    toast(`Found ${plural(r.problems, "problem")} to know. Web: ${r.web_status}`);
+    toast(t("foundProblems", r.problems, r.web_status));
     await load();
     if (thenCampaign && ui.data.target?.interview_date) await replan();
   } catch (e) {
@@ -205,7 +206,7 @@ async function replan() {
   try {
     await runJob("campaign", "/api/campaign");
     ui.expanded = null;
-    toast("Your plan to the interview is ready.");
+    toast(t("planReady"));
   } catch (e) {
     toast(e.message, "error");
   }
@@ -214,7 +215,7 @@ async function replan() {
 
 async function planToday() {
   const minutes = Number(ui.minutes);
-  if (!(minutes >= 5 && minutes <= 600)) { toast("Pick between 5 and 600 minutes.", "error"); return; }
+  if (!(minutes >= 5 && minutes <= 600)) { toast(t("errMinutes"), "error"); return; }
   ui.feedbackResult = null;
   try { await runJob("plan", "/api/plan", { minutes }); }
   catch (e) { toast(e.message, "error"); }
@@ -223,7 +224,7 @@ async function planToday() {
 
 async function sendRecap() {
   const text = ui.recap.trim();
-  if (!text) { toast("Write a line or two about how it went.", "error"); $("#recap")?.focus(); return; }
+  if (!text) { toast(t("errRecap"), "error"); $("#recap")?.focus(); return; }
   try {
     ui.feedbackResult = await runJob("feedback", "/api/feedback", { text });
     ui.recap = "";
@@ -247,7 +248,7 @@ async function sendDesign() {
   const sess = ui.data?.design_session;
   const text = ui.designDraft.trim();
   if (!sess) return;
-  if (!text) { toast("Write your answer first.", "error"); $("#design-answer")?.focus(); return; }
+  if (!text) { toast(t("errAnswer"), "error"); $("#design-answer")?.focus(); return; }
   try {
     await runJob("design", "/api/design/reply", { session: sess.id, text });
     ui.designDraft = "";
@@ -269,7 +270,7 @@ async function finishDesign() {
 async function abandonDesign() {
   const sess = ui.data?.design_session;
   if (!sess) return;
-  try { await api("/api/design/abandon", { session: sess.id }); toast("Session abandoned. Nothing was recorded."); }
+  try { await api("/api/design/abandon", { session: sess.id }); toast(t("abandoned")); }
   catch (e) { toast(e.message, "error"); }
   ui.designDraft = "";
   await load();
@@ -277,7 +278,7 @@ async function abandonDesign() {
 
 async function linkLeetCode() {
   const username = ui.lcUsername.trim().replace(/^@/, "");
-  if (!/^[A-Za-z0-9_-]{1,40}$/.test(username)) { toast("Enter your LeetCode username (letters, digits, - and _).", "error"); $("#lc-username")?.focus(); return; }
+  if (!/^[A-Za-z0-9_-]{1,40}$/.test(username)) { toast(t("errUsername"), "error"); $("#lc-username")?.focus(); return; }
   try {
     const r = await runJob("leetcode", "/api/leetcode", { username });
     ui.lcUsername = "";
@@ -293,14 +294,22 @@ async function syncLeetCode() {
 }
 
 async function unlinkLeetCode() {
-  try { await api("/api/leetcode/unlink", {}); toast("LeetCode unlinked. Your logged history stays."); }
+  try { await api("/api/leetcode/unlink", {}); toast(t("lcUnlinked")); }
   catch (e) { toast(e.message, "error"); }
   await load();
 }
 
 const syncMessage = (r) => r.added?.length
-  ? `Logged ${plural(r.added.length, "solve")} from LeetCode: ${r.added.slice(0, 3).join(", ")}${r.added.length > 3 ? "…" : ""}`
-  : `@${r.username} is up to date. No new solves on your plan.`;
+  ? t("lcLogged", r.added.length, `${r.added.slice(0, 3).join(", ")}${r.added.length > 3 ? "…" : ""}`)
+  : t("lcUpToDate", r.username);
+
+async function switchLanguage() {
+  const next = LANG === "zh" ? "en" : "zh";
+  setLang(next);
+  render(); // the interface switches at once; the saved setting tells Claude which language to write in
+  try { await api("/api/settings", { language: next }); if (ui.data) ui.data.language = next; }
+  catch (e) { toast(e.message, "error"); }
+}
 
 // ---- Render helpers --------------------------------------------------------
 
@@ -319,113 +328,112 @@ const bar = (pct, cls = "", mark = null) =>
   `<div class="bar ${cls}" role="presentation"><div class="bar__fill" data-pct="${Math.max(0, Math.min(1, pct))}"></div>${mark != null ? `<div class="bar__mark" data-mark="${mark}"></div>` : ""}</div>`;
 const extLink = (url, label) => {
   const u = safeUrl(url);
-  return u ? `<a class="ext" href="${esc(u)}" target="_blank" rel="noopener noreferrer" aria-label="Open ${esc(label)} on LeetCode">${icon("ext")}</a>` : "";
+  return u ? `<a class="ext" href="${esc(u)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(t("openOnLeetCode", label))}">${icon("ext")}</a>` : "";
 };
 const titleLink = (p) => {
   const u = safeUrl(p.link || p.url);
   return u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(p.title)}">${esc(p.title)}</a>` : `<span class="t" title="${esc(p.title)}">${esc(p.title)}</span>`;
 };
-const kindTag = (k) => `<span class="kind${k === "review" ? " kind--review" : ""}">${k === "review" ? "REV" : "NEW"}</span>`;
+const kindTag = (k) => `<span class="kind${k === "review" ? " kind--review" : ""}">${k === "review" ? t("kindReview") : t("kindNew")}</span>`;
 const segs = (problems) => `<span class="segs" aria-hidden="true">${problems.map((p) => `<i class="s-${statusOf(p)}"></i>`).join("")}</span>`;
 
 // ---- Views: chrome ---------------------------------------------------------
 
 function viewSidebar(d) {
-  const t = d?.target;
-  const showNav = t && !ui.editingTarget;
+  const tg = d?.target;
+  const showNav = tg && !ui.editingTarget;
   const nav = showNav ? [
-    ...(d.design_session || ui.scorecard ? [["session", "chat", "Design session", d.design_session ? "live" : "done"]] : []),
-    ["today", "today", "Today", d.today_plan?.items.length],
-    ["plan", "calendar", "Plan", d.campaign ? `${d.campaign.weeks.length}w` : ""],
-    ["readiness", "gauge", "Readiness", d.readiness ? `${d.readiness.overall}%` : ""],
-    ["intel", "target", "Intel", d.company?.problems.length],
-    ["topics", "layers", "Topics", ""],
-    ["activity", "clock", "Activity", d.due_reviews?.length ? `${d.due_reviews.length} due` : ""],
+    ...(d.design_session || ui.scorecard ? [["session", "chat", t("navSession"), d.design_session ? t("live") : t("done")]] : []),
+    ["today", "today", t("navToday"), d.today_plan?.items.length],
+    ["plan", "calendar", t("navPlan"), d.campaign ? t("weeksShort", d.campaign.weeks.length) : ""],
+    ["readiness", "gauge", t("navReadiness"), d.readiness ? `${d.readiness.overall}%` : ""],
+    ["intel", "target", t("navIntel"), d.company?.problems.length],
+    ["topics", "layers", t("navTopics"), ""],
+    ["activity", "clock", t("navActivity"), d.due_reviews?.length ? t("dueCount", d.due_reviews.length) : ""],
   ] : [];
   const p = d?.provider;
-  const provider = p ? `<span class="tag ${d.demo || p.name === "fake" ? "tag--warning" : "tag--accent"}" title="Model provider"><span class="dot"></span>${esc(d.demo ? "Demo" : p.name === "fake" ? "Offline" : p.name === "bedrock" ? "Bedrock" : "Claude API")}</span>` : "<span></span>";
+  const provider = p ? `<span class="tag ${d.demo || p.name === "fake" ? "tag--warning" : "tag--accent"}" title="${esc(t("provider"))}"><span class="dot"></span>${esc(d.demo ? t("demo") : p.name === "fake" ? t("offline") : p.name === "bedrock" ? t("bedrock") : t("claudeApi"))}</span>` : "<span></span>";
   return `
-    <a class="brand" href="/"><span class="brand__mark">${icon("code")}</span>LeetCode Coach</a>
+    <a class="brand" href="/"><span class="brand__mark">${icon("code")}</span>${esc(t("brand"))}</a>
     ${showNav ? `
       <div class="side-target">
-        <span class="label side-meta">Target</span>
-        <div class="side-target__co"><span>${esc(t.company)} <span class="meta">· ${esc(t.level_label)}</span></span>
-          <button type="button" class="icon-btn" data-action="edit-target" aria-label="Change target">${icon("pencil")}</button></div>
-        ${t.interview_date ? `<span class="meta mono side-meta">${esc(fmtDate(t.interview_date, { weekday: "short", month: "short", day: "numeric" }))}</span>
-          <div class="side-count"><b>${esc(t.days_left)}</b><span class="meta">days to go</span></div>` : ""}
+        <span class="label side-meta">${esc(t("target"))}</span>
+        <div class="side-target__co"><span>${esc(tg.company)} <span class="meta">· ${esc(levelName(tg))}</span></span>
+          <button type="button" class="icon-btn" data-action="edit-target" aria-label="${esc(STRINGS[LANG].changeTarget)}">${icon("pencil")}</button></div>
+        ${tg.interview_date ? `<span class="meta mono side-meta">${esc(fmtDate(tg.interview_date, { weekday: "short", month: "short", day: "numeric" }))}</span>
+          <div class="side-count"><b>${esc(tg.days_left)}</b><span class="meta">${esc(STRINGS[LANG].daysToGo)}</span></div>` : ""}
       </div>
-      <nav class="nav" aria-label="Sections">
-        <span class="label nav__label">Workspace</span>
+      <nav class="nav" aria-label="${esc(STRINGS[LANG].sections)}">
+        <span class="label nav__label">${esc(STRINGS[LANG].workspace)}</span>
         ${nav.map(([id, ic, label, count]) => `<a href="#${id}" data-nav="${id}"${ui.navCurrent === id ? ' aria-current="true"' : ""}>${icon(ic)}${esc(label)}${count ? `<span class="count">${esc(count)}</span>` : ""}</a>`).join("")}
       </nav>` : ""}
-    <div class="sidebar__foot">${provider}<button class="icon-btn" id="theme-toggle" type="button" data-action="theme"></button></div>`;
+    <div class="sidebar__foot">${provider}<span class="row-gap"><button class="btn btn--ghost btn--sm lang-toggle" id="lang-toggle" type="button" data-action="lang" lang="${LANG === "zh" ? "en" : "zh-CN"}" aria-label="${esc(STRINGS[LANG].langLabel)}">${esc(STRINGS[LANG].langButton)}</button><button class="icon-btn" id="theme-toggle" type="button" data-action="theme"></button></span></div>`;
 }
 
 function viewToolbar(d) {
-  const t = d?.target;
-  const main = t && !ui.editingTarget;
+  const tg = d?.target;
+  const main = tg && !ui.editingTarget;
   const crumbs = main
-    ? `<b>${esc(t.company)}</b><span class="sep">/</span><span>Interview prep</span><span class="sep">/</span><span class="mono">${esc(fmtDate(d.today, { weekday: "short", month: "short", day: "numeric" }))}</span>`
-    : `<b>Setup</b>`;
+    ? `<b>${esc(tg.company)}</b><span class="sep">/</span><span>${esc(t("interviewPrep"))}</span><span class="sep">/</span><span class="mono">${esc(fmtDate(d.today, { weekday: "short", month: "short", day: "numeric" }))}</span>`
+    : `<b>${esc(t("setup"))}</b>`;
   const actions = main && d.company
-    ? `${jobLine("research")}${btn("Refresh intel", { action: "research", kind: "ghost", size: "sm", busyKey: "research", iconName: "refresh" })}`
+    ? `${jobLine("research")}${btn(t("refreshIntel"), { action: "research", kind: "ghost", size: "sm", busyKey: "research", iconName: "refresh" })}`
     : "";
-  return `<nav class="crumbs" aria-label="Breadcrumb">${crumbs}</nav><span class="toolbar__spacer"></span>${actions}`;
+  return `<nav class="crumbs" aria-label="${esc(t("breadcrumb"))}">${crumbs}</nav><span class="toolbar__spacer"></span>${actions}`;
 }
 
 // ---- Views: setup ----------------------------------------------------------
 
 function viewSetup() {
-  const t = ui.data?.target;
+  const tg = ui.data?.target;
   const editing = ui.editingTarget && t;
   const busy = "setup" in ui.busy || "research" in ui.busy || "campaign" in ui.busy;
   return `<section class="col setup">
     <div class="panel panel--focal"><div class="panel__body">
       <div class="stack">
-        <h1>${editing ? "Change your target" : "Who are you preparing for?"}</h1>
-        <p class="lead">${editing ? "Changing the company or level rebuilds the intel and your plan." :
-          "Name the company and the date. The coach learns what they ask, then plans every week until then."}</p>
+        <h1>${esc(editing ? t("editTitle") : t("setupTitle"))}</h1>
+        <p class="lead">${esc(editing ? t("editLead") : t("setupLead"))}</p>
       </div>
       <form id="target-form" novalidate>
         <div class="field">
-          <label for="company">Company</label>
-          <input class="input" id="company" name="company" autocomplete="organization" value="${esc(t?.company || "")}" required ${busy ? "disabled" : ""} aria-describedby="company-hint">
-          <span class="hint" id="company-hint">e.g. Anthropic, Google, Stripe</span>
+          <label for="company">${esc(t("company"))}</label>
+          <input class="input" id="company" name="company" autocomplete="organization" value="${esc(tg?.company || "")}" required ${busy ? "disabled" : ""} aria-describedby="company-hint">
+          <span class="hint" id="company-hint">${esc(t("companyHint"))}</span>
         </div>
         <div class="form-row">
           <div class="field">
-            <label for="level">Level</label>
+            <label for="level">${esc(t("level"))}</label>
             <select class="input" id="level" name="level" ${busy ? "disabled" : ""} aria-describedby="level-hint">
-              ${(ui.data?.levels || []).map((l) => `<option value="${esc(l.id)}"${(t?.level || "mid") === l.id ? " selected" : ""}>${esc(l.label)}</option>`).join("")}
+              ${(ui.data?.levels || []).map((l) => `<option value="${esc(l.id)}"${(tg?.level || "mid") === l.id ? " selected" : ""}>${esc(tv("levels", l.id) || l.label)}</option>`).join("")}
             </select>
-            <span class="hint" id="level-hint">The loop changes with level: more design and leadership as you go up.</span>
+            <span class="hint" id="level-hint">${esc(t("levelHint"))}</span>
           </div>
           <div class="field">
-            <label for="role">Role</label>
-            <input class="input" id="role" name="role" value="${esc(t?.role || "Software Engineer")}" ${busy ? "disabled" : ""}>
+            <label for="role">${esc(t("role"))}</label>
+            <input class="input" id="role" name="role" value="${esc(tg?.role || "Software Engineer")}" ${busy ? "disabled" : ""}>
           </div>
         </div>
         <div class="form-row">
           <div class="field">
-            <label for="interview_date">Interview date</label>
-            <input class="input mono" type="date" id="interview_date" name="interview_date" min="${esc(ui.data?.today || "")}" value="${esc(t?.interview_date || "")}" ${busy ? "disabled" : ""}>
+            <label for="interview_date">${esc(t("interviewDate"))}</label>
+            <input class="input mono" type="date" id="interview_date" name="interview_date" min="${esc(ui.data?.today || "")}" value="${esc(tg?.interview_date || "")}" ${busy ? "disabled" : ""}>
           </div>
           <div class="field">
-            <label for="daily_minutes">Minutes a day</label>
+            <label for="daily_minutes">${esc(t("minutesADay"))}</label>
             <input class="input mono" type="number" id="daily_minutes" name="daily_minutes" min="10" max="600" step="5" value="${esc(ui.data?.daily_minutes || 60)}" ${busy ? "disabled" : ""}>
           </div>
         </div>
-        <details class="disclose"><summary>${icon("chev", "chev")}Paste the job posting (optional)</summary>
+        <details class="disclose"><summary>${icon("chev", "chev")}${esc(t("postingToggle"))}</summary>
           <div class="field">
-            <label class="sr-only" for="job_posting">Job posting</label>
-            <textarea class="textarea" id="job_posting" name="job_posting" rows="6" placeholder="Paste the description: level, team and stated focus sharpen the research." ${busy ? "disabled" : ""}></textarea>
-            ${t?.has_job_posting ? '<span class="hint">A posting is saved. Paste a new one to replace it, or leave this empty to keep it.</span>' : ""}
+            <label class="sr-only" for="job_posting">${esc(t("posting"))}</label>
+            <textarea class="textarea" id="job_posting" name="job_posting" rows="6" placeholder="${esc(t("postingPlaceholder"))}" ${busy ? "disabled" : ""}></textarea>
+            ${tg?.has_job_posting ? `<span class="hint">${esc(t("postingSaved"))}</span>` : ""}
           </div>
         </details>
         ${ui.setupError ? `<p class="form-error" role="alert">${esc(ui.setupError)}</p>` : ""}
         <div class="recap__actions">
-          ${btn(editing ? "Save target" : "Start preparing", { kind: "primary", type: "submit", busyKey: "setup", disabled: busy })}
-          ${editing ? btn("Cancel", { action: "cancel-edit", kind: "ghost", disabled: busy }) : ""}
+          ${btn(editing ? t("saveTarget") : t("startPreparing"), { kind: "primary", type: "submit", busyKey: "setup", disabled: busy })}
+          ${editing ? btn(t("cancel"), { action: "cancel-edit", kind: "ghost", disabled: busy }) : ""}
           ${jobLine("setup")}${jobLine("research")}${jobLine("campaign")}
         </div>
       </form>
@@ -438,10 +446,10 @@ function viewSetup() {
 const PRESETS = [30, 45, 60, 90, 120];
 function minutePicker(id) {
   const custom = PRESETS.includes(Number(ui.minutes)) ? "" : ui.minutes;
-  return `<div class="seg" role="group" aria-label="Minutes available today">
-    ${PRESETS.map((m) => `<button type="button" data-action="minutes" data-minutes="${m}" aria-pressed="${Number(ui.minutes) === m}">${m < 60 ? m + "m" : m / 60 + "h"}</button>`).join("")}
-    <label class="sr-only" for="${id}">Custom minutes</label>
-    <input id="${id}" class="custom-min" type="number" min="5" max="600" step="5" placeholder="min" value="${esc(custom)}">
+  return `<div class="seg" role="group" aria-label="${esc(t("minutesGroup"))}">
+    ${PRESETS.map((m) => `<button type="button" data-action="minutes" data-minutes="${m}" aria-pressed="${Number(ui.minutes) === m}">${esc(m < 60 ? t("presetMin", m) : t("presetHour", m / 60))}</button>`).join("")}
+    <label class="sr-only" for="${id}">${esc(t("customMinutes"))}</label>
+    <input id="${id}" class="custom-min" type="number" min="5" max="600" step="5" placeholder="${esc(t("minPlaceholder"))}" value="${esc(custom)}">
   </div>`;
 }
 
@@ -450,12 +458,12 @@ function viewToday(d) {
   const dayLabel = fmtDate(d.today, { weekday: "long", month: "long", day: "numeric" });
   if (!plan) {
     return `<section class="panel${d.design_session || ui.scorecard ? "" : " panel--focal"}" id="today" aria-labelledby="today-h">
-      <div class="panel__head"><h2 tabindex="-1" id="today-h">Today</h2><span class="meta">${esc(dayLabel)}</span></div>
+      <div class="panel__head"><h2 tabindex="-1" id="today-h">${esc(t("today"))}</h2><span class="meta">${esc(dayLabel)}</span></div>
       <div class="empty">
-        <h3>How much time do you have?</h3>
-        <p>The coach picks the session: new problems, due reviews, or both, following this week's plan.</p>
+        <h3>${esc(t("howMuchTime"))}</h3>
+        <p>${esc(t("howMuchTimeBody"))}</p>
         ${minutePicker("custom-min-a")}
-        <div class="row-gap">${btn("Plan my session", { action: "plan", kind: "primary", busyKey: "plan" })}${jobLine("plan")}</div>
+        <div class="row-gap">${btn(t("planSession"), { action: "plan", kind: "primary", busyKey: "plan" })}${jobLine("plan")}</div>
       </div>
     </section>`;
   }
@@ -466,44 +474,44 @@ function viewToday(d) {
       ${st(s)}
       <div>
         <div class="row__title"><span title="${esc(it.title)}">${esc(it.title)}</span>${extLink(it.link, it.title)}</div>
-        <div class="row__sub">${it.track === "system_design" ? "Mock interview · " : ""}${esc(it.topic.replace(/^Design: /, ""))} · ${esc(it.difficulty)}${it.source === "company" ? ` · ${esc(d.target?.company || "company")} pick` : ""}</div>
+        <div class="row__sub">${it.track === "system_design" ? `${esc(t("mockInterview"))} · ` : ""}${esc(topicName(it.topic).replace(/^(Design: |设计：)/, ""))} · ${esc(tv("difficulty", it.difficulty))}${it.source === "company" ? ` · ${esc(t("companyPick", d.target?.company || ""))}` : ""}</div>
         ${it.reason ? `<div class="row__sub">${esc(it.reason)}</div>` : ""}
         ${it.track === "system_design" && s !== "solved" ? `<div class="row__act">${d.design_session?.title === it.title
-          ? btn("Resume session", { action: "goto-session", size: "sm", iconName: "chat" })
-          : btn("Start mock interview", { action: "start-design", size: "sm", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: it.title } })}</div>` : ""}
+          ? btn(t("resumeSession"), { action: "goto-session", size: "sm", iconName: "chat" })
+          : btn(t("startMock"), { action: "start-design", size: "sm", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: it.title } })}</div>` : ""}
       </div>
-      <div class="row__right">${kindTag(it.kind)}<span class="row__min">${esc(it.estimated_minutes)}m</span></div>
+      <div class="row__right">${kindTag(it.kind)}<span class="row__min">${esc(t("minutesShort", it.estimated_minutes))}</span></div>
     </li>`;
   }).join("");
 
   const fr = ui.feedbackResult;
   const result = fr ? `<div class="result" role="status">
-      <span class="label">Recorded</span>
+      <span class="label">${esc(t("recorded"))}</span>
       ${fr.coach_note ? `<p class="prose">${esc(fr.coach_note)}</p>` : ""}
       <ul>${fr.applied.map((a) => {
-        const [label, kind, s] = OUTCOME[a.outcome] || [a.outcome, "info", "new"];
-        return `<li>${st(s)}<span>${esc(a.title)}</span><span class="tag tag--${kind}">${esc(label)}</span>${a.next_review ? `<span class="meta mono">review ${esc(fmtDate(a.next_review))}</span>` : ""}</li>`;
+        const [label, kind, s] = outcome(a.outcome);
+        return `<li>${st(s)}<span>${esc(a.title)}</span><span class="tag tag--${kind}">${esc(label)}</span>${a.next_review ? `<span class="meta mono">${esc(t("reviewOn", fmtDate(a.next_review)))}</span>` : ""}</li>`;
       }).join("")}</ul>
-      ${fr.unmatched?.length ? `<p class="meta">Couldn't match: ${esc(fr.unmatched.join(", "))}</p>` : ""}
+      ${fr.unmatched?.length ? `<p class="meta">${esc(t("couldntMatch", fr.unmatched.join(", ")))}</p>` : ""}
     </div>` : "";
 
   return `<section class="panel${d.design_session || ui.scorecard ? "" : " panel--focal"}" id="today" aria-labelledby="today-h">
-    <div class="panel__head"><h2 tabindex="-1" id="today-h">Today</h2>
-      <span class="meta mono">${esc(plan.items.length)} items · ${esc(plan.total_minutes)}/${esc(plan.minutes)}m</span></div>
+    <div class="panel__head"><h2 tabindex="-1" id="today-h">${esc(t("today"))}</h2>
+      <span class="meta mono">${esc(t("itemsMeta", plan.items.length, plan.total_minutes, plan.minutes))}</span></div>
     ${plan.coach_note ? `<div class="note"><span class="label">${esc(dayLabel)}</span><p>${esc(plan.coach_note)}</p></div>` : ""}
-    ${plan.items.length ? `<ol class="rows">${rows}</ol>` : `<div class="empty"><h3>Nothing to practise right now</h3><p>Enjoy the break, or plan again with more time.</p></div>`}
+    ${plan.items.length ? `<ol class="rows">${rows}</ol>` : `<div class="empty"><h3>${esc(t("nothingToPractise"))}</h3><p>${esc(t("nothingToPractiseBody"))}</p></div>`}
     <div class="recap">
-      <label class="label" for="recap">How did it go?</label>
-      <textarea class="textarea" id="recap" placeholder="Clone Graph clicked this time, 15 min. Rotting Oranges I needed a hint on the minute counter." ${"feedback" in ui.busy ? "disabled" : ""}>${esc(ui.recap)}</textarea>
+      <label class="label" for="recap">${esc(t("howDidItGo"))}</label>
+      <textarea class="textarea" id="recap" placeholder="${esc(t("recapPlaceholder"))}" ${"feedback" in ui.busy ? "disabled" : ""}>${esc(ui.recap)}</textarea>
       <div class="recap__actions">
-        ${btn("Record session", { action: "recap", kind: "primary", busyKey: "feedback" })}
+        ${btn(t("recordSession"), { action: "recap", kind: "primary", busyKey: "feedback" })}
         ${jobLine("feedback")}
-        <span class="meta hint"><kbd>⌘</kbd> <kbd>↵</kbd> to record</span>
+        <span class="meta hint"><kbd>⌘</kbd> <kbd>↵</kbd> ${esc(t("toRecord"))}</span>
       </div>
     </div>
     ${result}
-    <details class="replan disclose"><summary>${icon("chev", "chev")}Plan again with different time</summary>
-      <div class="row-gap">${minutePicker("custom-min-b")}${btn("Re-plan today", { action: "plan", size: "sm", busyKey: "plan" })}${jobLine("plan")}</div>
+    <details class="replan disclose"><summary>${icon("chev", "chev")}${esc(t("planAgain"))}</summary>
+      <div class="row-gap">${minutePicker("custom-min-b")}${btn(t("replanToday"), { action: "plan", size: "sm", busyKey: "plan" })}${jobLine("plan")}</div>
     </details>
   </section>`;
 }
@@ -512,24 +520,24 @@ function viewToday(d) {
 function allocationStrip(alloc) {
   if (!alloc?.length) return "";
   const total = alloc.reduce((n, a) => n + a.minutes, 0) || 1;
-  return `<div class="alloc" role="img" aria-label="Time split: ${esc(alloc.map((a) => `${TRACK_LABEL[a.track]} ${fmtMin(a.minutes)}`).join(", "))}">
+  return `<div class="alloc" role="img" aria-label="${esc(t("timeSplit", alloc.map((a) => `${tv("tracks", a.track)} ${fmtMin(a.minutes)}`).join(", ")))}">
     <div class="alloc__bar">${alloc.map((a) => `<i class="t-${a.track}" data-grow="${a.minutes / total}"></i>`).join("")}</div>
-    <div class="alloc__legend">${alloc.map((a) => `<span><i class="t-${a.track}"></i>${esc(TRACK_LABEL[a.track])} <b class="mono">${fmtMin(a.minutes)}</b></span>`).join("")}</div>
+    <div class="alloc__legend">${alloc.map((a) => `<span><i class="t-${a.track}"></i>${esc(tv("tracks", a.track))} <b class="mono">${esc(fmtMin(a.minutes))}</b></span>`).join("")}</div>
   </div>`;
 }
 
 function viewPlan(d) {
   const c = d.campaign;
-  const title = d.target.interview_date ? `Plan to ${fmtDate(d.target.interview_date, { month: "short", day: "numeric" })}` : "Plan";
+  const title = d.target.interview_date ? t("planTo", fmtDate(d.target.interview_date, { month: "short", day: "numeric" })) : t("plan");
   const head = (meta = "") => `<div class="panel__head"><h2 tabindex="-1" id="plan-h">${esc(title)}</h2>${meta}</div>`;
   if (!d.target.interview_date) {
     return `<section class="panel" id="plan" aria-labelledby="plan-h">${head()}
-      <div class="empty"><h3>Add an interview date</h3><p>With a date, the coach plans every week from today to the interview.</p>${btn("Set a date", { action: "edit-target", iconName: "pencil" })}</div></section>`;
+      <div class="empty"><h3>${esc(t("addDate"))}</h3><p>${esc(t("addDateBody"))}</p>${btn(t("setDate"), { action: "edit-target", iconName: "pencil" })}</div></section>`;
   }
   if (!c) {
     return `<section class="panel" id="plan" aria-labelledby="plan-h">${head()}
-      <div class="empty"><h3>No plan yet</h3><p>The coach maps out each week: what to learn, what to repeat, and a final week to consolidate.</p>
-      <div class="row-gap">${btn("Build my plan", { action: "replan", kind: "primary", busyKey: "campaign" })}${jobLine("campaign")}</div></div></section>`;
+      <div class="empty"><h3>${esc(t("noPlan"))}</h3><p>${esc(t("noPlanBody"))}</p>
+      <div class="row-gap">${btn(t("buildPlan"), { action: "replan", kind: "primary", busyKey: "campaign" })}${jobLine("campaign")}</div></div></section>`;
   }
   const all = c.weeks.flatMap((w) => w.problems);
   const solved = all.filter((p) => p.status === "solved").length;
@@ -537,9 +545,9 @@ function viewPlan(d) {
     const open = ui.expanded ? ui.expanded.has(w.index) : w.current;
     return `<li class="week${w.current ? " week--current" : ""}${w.past ? " week--past" : ""}">
       <button type="button" class="week__head" data-action="toggle-week" data-week="${w.index}" aria-expanded="${open}" aria-controls="week-${w.index}">
-        <span class="week__n">W${pad2(w.index)}</span>
+        <span class="week__n">${esc(t("weekN", w.index))}</span>
         <span class="week__dates">${esc(fmtRange(w.start, w.end))}</span>
-        <span class="week__theme"><span>${esc(w.theme)}</span>${w.current ? '<span class="tag tag--accent">Now</span>' : ""}</span>
+        <span class="week__theme"><span>${esc(w.theme)}</span>${w.current ? `<span class="tag tag--accent">${esc(t("now"))}</span>` : ""}</span>
         ${segs(w.problems)}
         <span class="week__count">${w.done}/${w.problems.length}</span>
         ${icon("chev", "chev")}
@@ -549,26 +557,25 @@ function viewPlan(d) {
         ${allocationStrip(w.allocation)}
         ${w.problems.length ? `<ul class="week__list">${w.problems.map((p) => {
           const s = statusOf(p);
-          return `<li class="is-${s}">${st(s)}${titleLink(p)}${p.track !== "algorithms" ? `<span class="kind kind--${p.track}">${TRACK_SHORT[p.track]}</span>` : ""}${kindTag(p.kind)}</li>`;
-        }).join("")}</ul>` : '<p class="meta">Nothing scheduled.</p>'}
+          return `<li class="is-${s}">${st(s)}${titleLink(p)}${p.track !== "algorithms" ? `<span class="kind kind--${p.track}">${esc(tv("trackShort", p.track))}</span>` : ""}${kindTag(p.kind)}</li>`;
+        }).join("")}</ul>` : '<p class="meta">' + esc(t("nothingScheduled")) + '</p>'}
       </div>
     </li>`;
   }).join("");
   return `<section class="panel" id="plan" aria-labelledby="plan-h">
-    ${head(`<span class="meta mono">${solved}/${all.length} done · ${c.weeks.length} weeks</span>`)}
-    ${c.stale ? `<div class="note"><p class="meta">Your interview date changed. Re-plan to fit the new date.</p></div>` : ""}
-    ${c.summary ? `<div class="note"><span class="label">Strategy</span><p class="prose">${esc(c.summary)}</p></div>` : ""}
+    ${head(`<span class="meta mono">${esc(t("planMeta", solved, all.length, c.weeks.length))}</span>`)}
+    ${c.stale ? `<div class="note"><p class="meta">${esc(t("staleCampaign"))}</p></div>` : ""}
+    ${c.summary ? `<div class="note"><span class="label">${esc(t("strategy"))}</span><p class="prose">${esc(c.summary)}</p></div>` : ""}
     <ol class="weeks">${weeks}</ol>
     <div class="panel__foot">
-      <div class="legend" aria-hidden="true">${["new", "in_progress", "solved", "due"].map((s) => `<span>${st(s)}${STATUS_LABEL[s]}</span>`).join("")}</div>
-      <div class="row-gap">${jobLine("campaign")}${btn("Re-plan from today", { action: "replan", size: "sm", busyKey: "campaign", iconName: "refresh" })}</div>
+      <div class="legend" aria-hidden="true">${["new", "in_progress", "solved", "due"].map((s) => `<span>${st(s)}${esc(tv("status", s))}</span>`).join("")}</div>
+      <div class="row-gap">${jobLine("campaign")}${btn(t("replanFromToday"), { action: "replan", size: "sm", busyKey: "campaign", iconName: "refresh" })}</div>
     </div>
   </section>`;
 }
 
 // ---- Views: design session -------------------------------------------------
 
-const PHASE_LABEL = { requirements: "Requirements", high_level: "High-level design", deep_dive: "Deep dive", wrap_up: "Wrap-up" };
 
 function viewSession(d) {
   const sess = d.design_session;
@@ -576,34 +583,34 @@ function viewSession(d) {
     const phase = [...sess.transcript].reverse().find((m) => m.role === "interviewer")?.phase;
     const answers = sess.transcript.filter((m) => m.role === "candidate").length;
     const msgs = sess.transcript.map((m) => `<li class="msg msg--${m.role}">
-        <span class="msg__who">${m.role === "interviewer" ? "Interviewer" : "You"}</span>
+        <span class="msg__who">${esc(m.role === "interviewer" ? t("interviewer") : t("you"))}</span>
         <p class="msg__text">${esc(m.text)}</p>
       </li>`).join("");
     const confirming = ui.confirmAbandon;
     return `<section class="panel panel--focal" id="session" aria-labelledby="session-h">
-      <div class="panel__head"><h2 tabindex="-1" id="session-h">Mock interview</h2>
-        <span class="meta mono">${phase ? esc(PHASE_LABEL[phase] || phase) : ""}${sess.hints ? ` · ${plural(sess.hints, "hint")}` : ""}</span></div>
+      <div class="panel__head"><h2 tabindex="-1" id="session-h">${esc(t("mockInterview"))}</h2>
+        <span class="meta mono">${phase ? esc(tv("phases", phase)) : ""}${sess.hints ? ` · ${esc(t("hints", sess.hints))}` : ""}</span></div>
       <div class="note">
-        <span class="label">${esc(d.target.company)} · ${esc(d.target.level_label)} · ${esc(sess.difficulty || "")}</span>
+        <span class="label">${esc(d.target.company)} · ${esc(levelName(d.target))} · ${esc(tv("difficulty", sess.difficulty || ""))}</span>
         <p>${esc(sess.title)}</p>
         ${sess.concepts?.length ? `<div class="intel-row__tags">${sess.concepts.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>` : ""}
       </div>
-      <ol class="transcript" aria-label="Transcript" tabindex="0">${msgs}</ol>
+      <ol class="transcript" aria-label="${esc(t("transcript"))}" tabindex="0" lang="en">${msgs}</ol>
       <div class="recap">
-        <label class="label" for="design-answer">Your answer</label>
-        <textarea class="textarea textarea--tall" id="design-answer" placeholder="Talk it through as you would out loud: requirements, numbers, components, trade-offs." ${"design" in ui.busy ? "disabled" : ""}>${esc(ui.designDraft)}</textarea>
+        <label class="label" for="design-answer">${esc(t("yourAnswer"))}</label>
+        <textarea class="textarea textarea--tall" id="design-answer" placeholder="${esc(t("answerPlaceholder"))}" ${"design" in ui.busy ? "disabled" : ""}>${esc(ui.designDraft)}</textarea>
         <div class="recap__actions">
-          ${btn("Send", { action: "design-send", kind: "primary", busyKey: "design" })}
+          ${btn(t("send"), { action: "design-send", kind: "primary", busyKey: "design" })}
           ${jobLine("design")}
-          <span class="meta hint"><kbd>⌘</kbd> <kbd>↵</kbd> to send</span>
+          <span class="meta hint"><kbd>⌘</kbd> <kbd>↵</kbd> ${esc(t("toSend"))}</span>
         </div>
       </div>
       <div class="panel__foot">
-        <span class="meta">${answers ? "Finish when you'd wrap up in a real interview; the transcript is graded." : "Answer at least once before finishing."}</span>
+        <span class="meta">${esc(answers ? t("finishHint") : t("answerFirst"))}</span>
         <div class="row-gap">
           ${confirming
-            ? `${btn("Abandon, record nothing", { action: "design-abandon-confirm", kind: "ghost", size: "sm" })}${btn("Keep going", { action: "design-abandon-cancel", size: "sm" })}`
-            : `${btn("Abandon", { action: "design-abandon", kind: "ghost", size: "sm", disabled: "design" in ui.busy })}${btn("Finish & score", { action: "design-finish", size: "sm", busyKey: "design", disabled: !answers })}`}
+            ? `${btn(t("abandonConfirm"), { action: "design-abandon-confirm", kind: "ghost", size: "sm" })}${btn(t("keepGoing"), { action: "design-abandon-cancel", size: "sm" })}`
+            : `${btn(t("abandon"), { action: "design-abandon", kind: "ghost", size: "sm", disabled: "design" in ui.busy })}${btn(t("finishScore"), { action: "design-finish", size: "sm", busyKey: "design", disabled: !answers })}`}
         </div>
       </div>
     </section>`;
@@ -611,22 +618,22 @@ function viewSession(d) {
   const done = ui.scorecard;
   if (!done?.scorecard) return "";
   const c = done.scorecard;
-  const [label, kind] = OUTCOME[c.outcome] || [c.outcome, "info"];
+  const [label, kind] = outcome(c.outcome);
   return `<section class="panel panel--focal" id="session" aria-labelledby="session-h">
-    <div class="panel__head"><h2 tabindex="-1" id="session-h">Scorecard</h2><span class="meta mono">${esc(done.minutes || "")}m</span></div>
+    <div class="panel__head"><h2 tabindex="-1" id="session-h">${esc(t("scorecard"))}</h2><span class="meta mono">${done.minutes ? esc(t("minutesShort", done.minutes)) : ""}</span></div>
     <div class="note">
       <span class="label">${esc(done.title)}</span>
       <p>${esc(c.summary)}</p>
-      <div class="row-gap"><span class="tag tag--${kind}">${esc(label)}</span>${c.next_review ? `<span class="meta mono">review ${esc(fmtDate(c.next_review))}</span>` : ""}</div>
+      <div class="row-gap"><span class="tag tag--${kind}">${esc(label)}</span>${c.next_review ? `<span class="meta mono">${esc(t("reviewOn", fmtDate(c.next_review)))}</span>` : ""}</div>
     </div>
     <ul class="rubric">${c.scores.map((x) => `<li>
-      <div class="kv"><span>${esc(x.dimension)}</span><b>${esc(x.score)}/4</b></div>
-      <span class="pips" role="img" aria-label="${esc(x.score)} of 4">${[1, 2, 3, 4].map((i) => `<i class="${i <= x.score ? "on" : ""}"></i>`).join("")}</span>
+      <div class="kv"><span>${esc(tv("dimensions", x.dimension))}</span><b>${esc(x.score)}/4</b></div>
+      <span class="pips" role="img" aria-label="${esc(t("ofFour", x.score))}">${[1, 2, 3, 4].map((i) => `<i class="${i <= x.score ? "on" : ""}"></i>`).join("")}</span>
       <p class="meta">${esc(x.note)}</p>
     </li>`).join("")}</ul>
-    ${c.weak_concepts?.length ? `<div class="section"><span class="label">Revisit</span><ol class="advice">${c.weak_concepts.map((w) => `<li><span>${esc(w)}</span></li>`).join("")}</ol></div>` : ""}
-    ${c.strengths?.length ? `<div class="section"><span class="label">Strengths</span><div class="intel-row__tags">${c.strengths.map((w) => `<span class="tag tag--success">${esc(w)}</span>`).join("")}</div></div>` : ""}
-    <div class="panel__foot"><span class="meta">Recorded in your history; it comes back for review like any problem.</span>${btn("Done", { action: "dismiss-scorecard", size: "sm" })}</div>
+    ${c.weak_concepts?.length ? `<div class="section"><span class="label">${esc(t("revisit"))}</span><ol class="advice">${c.weak_concepts.map((w) => `<li><span>${esc(w)}</span></li>`).join("")}</ol></div>` : ""}
+    ${c.strengths?.length ? `<div class="section"><span class="label">${esc(t("strengths"))}</span><div class="intel-row__tags">${c.strengths.map((w) => `<span class="tag tag--success">${esc(w)}</span>`).join("")}</div></div>` : ""}
+    <div class="panel__foot"><span class="meta">${esc(t("scorecardFoot"))}</span>${btn(t("doneBtn"), { action: "dismiss-scorecard", size: "sm" })}</div>
   </section>`;
 }
 
@@ -635,36 +642,36 @@ function viewSession(d) {
 function viewReadiness(d) {
   const r = d.readiness;
   const stats = `<div class="stats">
-      <div><b>${d.target.days_left != null && d.target.days_left >= 0 ? esc(d.target.days_left) : "—"}</b><span class="meta">days left</span></div>
-      <div><b>${esc(d.streak)}</b><span class="meta">day streak</span></div>
-      <div><b>${esc(d.due_reviews.length)}</b><span class="meta">reviews due</span></div>
+      <div><b>${d.target.days_left != null && d.target.days_left >= 0 ? esc(d.target.days_left) : "—"}</b><span class="meta">${esc(t("daysLeft"))}</span></div>
+      <div><b>${esc(d.streak)}</b><span class="meta">${esc(t("dayStreak"))}</span></div>
+      <div><b>${esc(d.due_reviews.length)}</b><span class="meta">${esc(t("reviewsDue"))}</span></div>
     </div>`;
   if (!r) {
     return `<section class="panel" id="readiness" aria-labelledby="ready-h">
-      <div class="panel__head"><h2 tabindex="-1" id="ready-h">Readiness</h2></div>
-      <div class="empty"><h3>Learn what ${esc(d.target.company)} asks</h3>
-      <p>Pulls LeetCode company-tag datasets from GitHub${d.provider.web_search ? " and searches recent interview reports" : ""}.</p>
-      <div class="row-gap">${btn("Gather intel", { action: "research", kind: "primary", busyKey: "research" })}${jobLine("research")}</div></div>${stats}</section>`;
+      <div class="panel__head"><h2 tabindex="-1" id="ready-h">${esc(t("readiness"))}</h2></div>
+      <div class="empty"><h3>${esc(t("learnWhat", d.target.company))}</h3>
+      <p>${esc(t("learnWhatBody", d.provider.web_search))}</p>
+      <div class="row-gap">${btn(t("gatherIntel"), { action: "research", kind: "primary", busyKey: "research" })}${jobLine("research")}</div></div>${stats}</section>`;
   }
   return `<section class="panel" id="readiness" aria-labelledby="ready-h">
-    <div class="panel__head"><h2 tabindex="-1" id="ready-h">Readiness</h2><span class="meta">for ${esc(d.target.company)}</span></div>
+    <div class="panel__head"><h2 tabindex="-1" id="ready-h">${esc(t("readiness"))}</h2><span class="meta">${esc(t("forCompany", d.target.company))}</span></div>
     <div class="panel__body">
       <div class="ready ready--rounds">
         <div class="ready__num">${esc(r.overall)}<small>%</small></div>
-        <p class="meta">Weighted across the rounds the coach can train for a ${esc(d.target.level_label.toLowerCase())} loop.</p>
+        <p class="meta">${esc(t("readinessNote", levelName(d.target)))}</p>
       </div>
       <ul class="rounds">${(r.rounds || []).filter((x) => x.score != null).map((x) => `<li class="round">
         <div class="kv"><span title="${esc(x.description || "")}">${esc(x.name)}${x.count > 1 ? ` <span class="meta">×${x.count}</span>` : ""}</span>
           <b>${esc(x.score)}%</b></div>
-        <div class="round__meta"><span class="kind kind--${esc(x.track)}">${esc(TRACK_LABEL[x.track] || x.track)}</span><span class="meta mono">${Math.round(x.weight * 100)}% of loop</span></div>
+        <div class="round__meta"><span class="kind kind--${esc(x.track)}">${esc(tv("tracks", x.track))}</span><span class="meta mono">${esc(t("ofLoop", Math.round(x.weight * 100)))}</span></div>
         ${x.score == null ? "" : bar(x.score / 100, `bar--${x.track}`)}
       </li>`).join("")}
       ${(() => {
         const un = (r.rounds || []).filter((x) => x.score == null);
-        return un.length ? `<li class="round round--untracked"><div class="kv"><span>Not covered yet</span><b class="meta mono">${Math.round(r.untracked_weight * 100)}% of loop</b></div>
+        return un.length ? `<li class="round round--untracked"><div class="kv"><span>${esc(t("notCovered"))}</span><b class="meta mono">${esc(t("ofLoop", Math.round(r.untracked_weight * 100)))}</b></div>
           <p class="meta">${esc(un.map((x) => x.name).join(" · "))}</p></li>` : "";
       })()}</ul>
-      ${r.weak_spots.length ? `<div class="weak"><span class="meta">Weakest where it counts</span>${r.weak_spots.map((w) => `<span class="tag tag--warning">${esc(w)}</span>`).join("")}</div>` : ""}
+      ${r.weak_spots.length ? `<div class="weak"><span class="meta">${esc(t("weakest"))}</span>${r.weak_spots.map((w) => `<span class="tag tag--warning">${esc(topicName(w))}</span>`).join("")}</div>` : ""}
     </div>
     ${stats}
   </section>`;
@@ -678,11 +685,11 @@ function viewIntel(d) {
   const rows = list.map((p, i) => {
     const s = statusOf(p);
     const tags = [
-      p.kind === "practical" ? '<span class="tag tag--accent">Practical</span>' : p.kind === "design" ? '<span class="tag tag--info">System design</span>' : `<span class="tag">${esc(p.difficulty)}</span>`,
-      p.kind === "practical" ? "" : `<span class="tag">${esc(p.topic.replace(/^Design: /, ""))}</span>`,
-      p.from_dataset ? '<span class="tag" title="LeetCode company-tag dataset">Dataset</span>' : "",
-      p.from_web ? '<span class="tag tag--info" title="Named in interview write-ups">Reported</span>' : "",
-      !p.from_dataset && !p.from_web ? '<span class="tag" title="Trains the same skill">Related</span>' : "",
+      p.kind === "practical" ? `<span class="tag tag--accent">${esc(t("tagPractical"))}</span>` : p.kind === "design" ? `<span class="tag tag--info">${esc(t("tagDesign"))}</span>` : `<span class="tag">${esc(tv("difficulty", p.difficulty))}</span>`,
+      p.kind === "practical" ? "" : `<span class="tag">${esc(topicName(p.topic).replace(/^(Design: |设计：)/, ""))}</span>`,
+      p.from_dataset ? `<span class="tag" title="${esc(t("tagDatasetTitle"))}">${esc(t("tagDataset"))}</span>` : "",
+      p.from_web ? `<span class="tag tag--info" title="${esc(t("tagReportedTitle"))}">${esc(t("tagReported"))}</span>` : "",
+      !p.from_dataset && !p.from_web ? `<span class="tag" title="${esc(t("tagRelatedTitle"))}">${esc(t("tagRelated"))}</span>` : "",
     ].join("");
     return `<li class="intel-row">
       <span class="intel-row__rank">${pad2(i + 1)}</span>
@@ -690,55 +697,55 @@ function viewIntel(d) {
         <div class="row__title">${st(s)}<span title="${esc(p.title)}">${esc(p.title)}</span>${extLink(p.url || p.link, p.title)}</div>
         ${p.description || p.evidence ? `<div class="intel-row__desc">${esc(p.description || p.evidence)}</div>` : ""}
         <div class="intel-row__tags">${tags}</div>
-        ${p.kind === "design" && s !== "solved" && d.design_session?.title !== p.title ? `<div class="row__act">${btn("Practice", { action: "start-design", size: "sm", kind: "ghost", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: p.title } })}</div>` : ""}
+        ${p.kind === "design" && s !== "solved" && d.design_session?.title !== p.title ? `<div class="row__act">${btn(t("practice"), { action: "start-design", size: "sm", kind: "ghost", iconName: "chat", busyKey: "design", disabled: !!d.design_session, data: { title: p.title } })}</div>` : ""}
       </div>
-      <div class="intel-row__w" title="Importance for ${esc(d.target.company)}">${Number(p.weight).toFixed(2)}${bar(p.weight, "bar--muted")}</div>
+      <div class="intel-row__w" title="${esc(t("importance", d.target.company))}">${Number(p.weight).toFixed(2)}${bar(p.weight, "bar--muted")}</div>
     </li>`;
   }).join("");
   const web = c.sources.filter((s) => s.kind === "web");
   const ds = c.sources.filter((s) => s.kind === "dataset");
   return `<section class="panel" id="intel" aria-labelledby="intel-h">
-    <div class="panel__head"><h2 tabindex="-1" id="intel-h">What ${esc(d.target.company)} asks</h2><span class="meta mono">${esc(c.problems.length)} problems</span></div>
-    ${c.stale_level ? `<div class="note note--warn" role="status"><p class="meta">This intel was gathered for a different level. Refresh it for ${esc(d.target.level_label)}.</p>${btn("Refresh for " + d.target.level_label, { action: "research", size: "sm", busyKey: "research", iconName: "refresh" })}</div>` : ""}
-    ${c.rounds?.length ? `<div class="note"><span class="label">Interview loop · ${esc(d.target.level_label)}</span><ol class="loop">${c.rounds.map((x) => `<li>
+    <div class="panel__head"><h2 tabindex="-1" id="intel-h">${esc(t("whatAsks", d.target.company))}</h2><span class="meta mono">${esc(t("problemsCount", c.problems.length))}</span></div>
+    ${c.stale_level ? `<div class="note note--warn" role="status"><p class="meta">${esc(t("staleLevel", levelName(d.target)))}</p>${btn(t("refreshFor", levelName(d.target)), { action: "research", size: "sm", busyKey: "research", iconName: "refresh" })}</div>` : ""}
+    ${c.rounds?.length ? `<div class="note"><span class="label">${esc(t("loopLabel", levelName(d.target)))}</span><ol class="loop">${c.rounds.map((x) => `<li>
         <span class="loop__name">${esc(x.name)}${x.count > 1 ? ` <span class="meta">×${x.count}</span>` : ""}</span>
-        <span class="kind kind--${esc(x.track)}">${PRACTICE_TRACKS.includes(x.track) ? esc(TRACK_LABEL[x.track]) : `${esc(TRACK_LABEL[x.track] || x.track)} · no track`}</span>
+        <span class="kind kind--${esc(x.track)}">${PRACTICE_TRACKS.includes(x.track) ? esc(tv("tracks", x.track)) : `${esc(tv("tracks", x.track))} · ${esc(t("noTrack"))}`}</span>
         ${x.description ? `<span class="loop__desc">${esc(x.description)}</span>` : ""}
       </li>`).join("")}</ol></div>` : ""}
-    ${c.interview_format ? `<div class="note"><span class="label">Interview format</span><p class="format__text${ui.showFormat ? " is-open" : ""}">${esc(c.interview_format)}</p>
-      <button type="button" class="btn btn--ghost btn--sm" data-action="toggle-format">${ui.showFormat ? "Less" : "Read more"}</button></div>` : ""}
-    ${c.problems.length ? `<ol class="rows">${rows}</ol>` : `<div class="empty"><p>No specific problems found yet.</p></div>`}
-    ${c.problems.length > LIMIT ? `<button type="button" class="btn btn--ghost btn--sm more" data-action="toggle-problems">${ui.showAllProblems ? "Show fewer" : `Show all ${c.problems.length}`}</button>` : ""}
-    ${c.advice?.length ? `<div class="section"><details class="disclose"><summary>${icon("chev", "chev")}What candidates say · ${c.advice.length}</summary>
+    ${c.interview_format ? `<div class="note"><span class="label">${esc(t("interviewFormat"))}</span><p class="format__text${ui.showFormat ? " is-open" : ""}">${esc(c.interview_format)}</p>
+      <button type="button" class="btn btn--ghost btn--sm" data-action="toggle-format">${esc(ui.showFormat ? t("less") : t("readMore"))}</button></div>` : ""}
+    ${c.problems.length ? `<ol class="rows">${rows}</ol>` : `<div class="empty"><p>${esc(t("noProblems"))}</p></div>`}
+    ${c.problems.length > LIMIT ? `<button type="button" class="btn btn--ghost btn--sm more" data-action="toggle-problems">${esc(ui.showAllProblems ? t("showFewer") : t("showAll", c.problems.length))}</button>` : ""}
+    ${c.advice?.length ? `<div class="section"><details class="disclose"><summary>${icon("chev", "chev")}${esc(t("candidatesSay", c.advice.length))}</summary>
       <ol class="advice">${c.advice.map((a) => `<li><span>${esc(a)}</span></li>`).join("")}</ol></details></div>` : ""}
     <div class="section">
-      <details class="disclose"><summary>${icon("chev", "chev")}Sources · ${esc(plural(ds.length, "dataset"))}, ${esc(plural(web.length, "web report"))}</summary>
-        <ul class="sources" aria-label="Sources" tabindex="0">${[...ds, ...web].map((s) => {
+      <details class="disclose"><summary>${icon("chev", "chev")}${esc(t("sourcesSummary", ds.length, web.length))}</summary>
+        <ul class="sources" aria-label="${esc(t("sources"))}" tabindex="0">${[...ds, ...web].map((s) => {
           const u = safeUrl(s.url);
           return `<li>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}">${esc(s.title || u)}</a>` : esc(s.title)}${s.status ? ` <span class="meta">· ${esc(s.status)}</span>` : ""}</li>`;
         }).join("")}</ul>
-        <p class="meta">Updated ${esc(fmtDate(c.updated))} · web ${esc(c.web_status)}</p>
+        <p class="meta">${esc(t("updated", fmtDate(c.updated), c.web_status))}</p>
       </details>
     </div>
   </section>`;
 }
 
 function viewTopics(d) {
-  const weights = Object.fromEntries((d.company?.topic_weights || []).map((t) => [t.topic, t.weight]));
+  const weights = Object.fromEntries((d.company?.topic_weights || []).map((tw) => [tw.topic, tw.weight]));
   const has = Object.keys(weights).length > 0;
   const sorted = [...d.topics].sort((a, b) => (weights[b.topic] || 0) - (weights[a.topic] || 0) || b.mastery - a.mastery);
-  const relevant = sorted.filter((t) => weights[t.topic] != null || t.solved > 0);
+  const relevant = sorted.filter((tp) => weights[tp.topic] != null || tp.solved > 0);
   const short = (relevant.length >= 4 ? relevant : sorted).slice(0, 8);
   const topics = ui.showAllTopics ? sorted : short;
   return `<section class="panel" id="topics" aria-labelledby="topics-h">
-    <div class="panel__head"><h2 tabindex="-1" id="topics-h">Topics</h2><span class="meta mono">${esc(d.totals.solved)}/${esc(d.totals.total)}</span></div>
-    ${has ? `<div class="note"><p class="meta">Bar = your mastery. Tick = how much ${esc(d.target.company)} emphasises it.</p></div>` : ""}
-    <ul class="topics">${topics.map((t) => `<li>
-      <span class="t" title="${esc(t.topic)}">${esc(t.topic)}</span>
-      ${bar(t.mastery, "", weights[t.topic] != null ? weights[t.topic] : null)}
-      <span class="c">${esc(t.solved)}/${esc(t.total)}</span>
+    <div class="panel__head"><h2 tabindex="-1" id="topics-h">${esc(t("topics"))}</h2><span class="meta mono">${esc(d.totals.solved)}/${esc(d.totals.total)}</span></div>
+    ${has ? `<div class="note"><p class="meta">${esc(t("topicsNote", d.target.company))}</p></div>` : ""}
+    <ul class="topics">${topics.map((tp) => `<li>
+      <span class="t" title="${esc(topicName(tp.topic))}">${esc(topicName(tp.topic))}</span>
+      ${bar(tp.mastery, "", weights[tp.topic] != null ? weights[tp.topic] : null)}
+      <span class="c">${esc(tp.solved)}/${esc(tp.total)}</span>
     </li>`).join("")}</ul>
-    ${sorted.length > short.length ? `<button type="button" class="btn btn--ghost btn--sm more" data-action="toggle-topics">${ui.showAllTopics ? "Show fewer" : `Show all ${sorted.length}`}</button>` : ""}
+    ${sorted.length > short.length ? `<button type="button" class="btn btn--ghost btn--sm more" data-action="toggle-topics">${esc(ui.showAllTopics ? t("showFewer") : t("showAll", sorted.length))}</button>` : ""}
   </section>`;
 }
 
@@ -747,11 +754,11 @@ function viewLeetCode(d) {
   if (!lc) {
     return `<div class="note lc">
       <span class="label" id="lc-h">LeetCode</span>
-      <p class="meta">Link your public profile: solves sync automatically and your history calibrates the plan. Read-only, no password.</p>
+      <p class="meta">${esc(t("lcIntro"))}</p>
       <div class="lc__form">
-        <label class="sr-only" for="lc-username">LeetCode username</label>
-        <input class="input" id="lc-username" placeholder="username" autocomplete="off" spellcheck="false" value="${esc(ui.lcUsername)}" ${"leetcode" in ui.busy ? "disabled" : ""}>
-        ${btn("Link", { action: "lc-link", size: "sm", busyKey: "leetcode" })}
+        <label class="sr-only" for="lc-username">${esc(t("lcUsername"))}</label>
+        <input class="input" id="lc-username" placeholder="${esc(t("lcPlaceholder"))}" autocomplete="off" spellcheck="false" value="${esc(ui.lcUsername)}" ${"leetcode" in ui.busy ? "disabled" : ""}>
+        ${btn(t("link"), { action: "lc-link", size: "sm", busyKey: "leetcode" })}
       </div>
       ${jobLine("leetcode")}
     </div>`;
@@ -759,15 +766,15 @@ function viewLeetCode(d) {
   const s = lc.solved || {};
   return `<div class="note lc">
     <div class="lc__head"><span class="row-gap"><span class="label" id="lc-h">LeetCode</span><a class="mono lc__user" href="${esc(safeUrl(`https://leetcode.com/u/${lc.username}/`))}" target="_blank" rel="noopener noreferrer">@${esc(lc.username)}</a></span>
-      <span class="row-gap">${jobLine("leetcode")}${btn("Sync", { action: "lc-sync", kind: "ghost", size: "sm", busyKey: "leetcode", iconName: "refresh" })}${btn("Unlink", { action: "lc-unlink", kind: "ghost", size: "sm", disabled: "leetcode" in ui.busy })}</span></div>
-    <div class="lc__stats" aria-label="Lifetime solved on LeetCode">
-      <div><b class="mono">${esc(s.All ?? 0)}</b><span class="meta">solved</span></div>
-      <div><b class="mono">${esc(s.Easy ?? 0)}</b><span class="meta">easy</span></div>
-      <div><b class="mono">${esc(s.Medium ?? 0)}</b><span class="meta">medium</span></div>
-      <div><b class="mono">${esc(s.Hard ?? 0)}</b><span class="meta">hard</span></div>
+      <span class="row-gap">${jobLine("leetcode")}${btn(t("sync"), { action: "lc-sync", kind: "ghost", size: "sm", busyKey: "leetcode", iconName: "refresh" })}${btn(t("unlink"), { action: "lc-unlink", kind: "ghost", size: "sm", disabled: "leetcode" in ui.busy })}</span></div>
+    <div class="lc__stats" aria-label="${esc(t("lcStats"))}">
+      <div><b class="mono">${esc(s.All ?? 0)}</b><span class="meta">${esc(t("solved"))}</span></div>
+      <div><b class="mono">${esc(s.Easy ?? 0)}</b><span class="meta">${esc(t("easy"))}</span></div>
+      <div><b class="mono">${esc(s.Medium ?? 0)}</b><span class="meta">${esc(t("medium"))}</span></div>
+      <div><b class="mono">${esc(s.Hard ?? 0)}</b><span class="meta">${esc(t("hard"))}</span></div>
     </div>
-    ${lc.tags?.length ? `<div class="intel-row__tags">${lc.tags.map((t) => `<span class="tag">${esc(t.tag)} <span class="mono">${esc(t.solved)}</span></span>`).join("")}</div>` : ""}
-    <p class="meta">Synced ${esc(ago(lc.synced_at))}${lc.last_added?.length ? ` · logged ${esc(lc.last_added.join(", "))}` : ""}${lc.last_other?.length ? ` · <span title="${esc(lc.last_other.join(", "))}">${esc(plural(lc.last_other.length, "other recent solve"))} not on your plan</span>` : ""}</p>
+    ${lc.tags?.length ? `<div class="intel-row__tags">${lc.tags.map((lt) => `<span class="tag">${esc(lt.tag)} <span class="mono">${esc(lt.solved)}</span></span>`).join("")}</div>` : ""}
+    <p class="meta">${esc(t("synced", ago(lc.synced_at)))}${lc.last_added?.length ? ` · ${esc(t("logged", lc.last_added.join(", ")))}` : ""}${lc.last_other?.length ? ` · <span title="${esc(lc.last_other.join(", "))}">${esc(t("otherSolves", lc.last_other.length))}</span>` : ""}</p>
   </div>`;
 }
 
@@ -775,34 +782,36 @@ function viewActivity(d) {
   const act = d.activity;
   const due = d.due_reviews;
   return `<section class="panel" id="activity" aria-labelledby="act-h">
-    <div class="panel__head"><h2 tabindex="-1" id="act-h">Activity</h2>${due.length ? `<span class="meta mono">${due.length} due</span>` : ""}</div>
+    <div class="panel__head"><h2 tabindex="-1" id="act-h">${esc(t("activity"))}</h2>${due.length ? `<span class="meta mono">${esc(t("dueCount", due.length))}</span>` : ""}</div>
     ${viewLeetCode(d)}
-    ${(d.design_scorecards || []).length ? `<div class="note"><span class="label" id="mock-h">Mock interviews</span><ul class="rows activity activity--mock" aria-labelledby="mock-h">${d.design_scorecards.map((c) => {
+    ${(d.design_scorecards || []).length ? `<div class="note"><span class="label" id="mock-h">${esc(t("mockInterviews"))}</span><ul class="rows activity activity--mock" aria-labelledby="mock-h">${d.design_scorecards.map((c) => {
       const sc = c.scorecard || {};
-      const [label, kind, st2] = OUTCOME[sc.outcome] || [sc.outcome || "", "info", "new"];
+      const [label, kind, st2] = outcome(sc.outcome);
       const avg = sc.scores?.length ? (sc.scores.reduce((n, x) => n + x.score, 0) / sc.scores.length).toFixed(1) : "–";
-      return `<li>${st(st2)}<span class="t" title="${esc(c.title)}">${esc(c.title)}</span><span class="row-gap"><span class="meta mono" title="Average rubric score">${avg}/4</span><span class="tag tag--${kind}">${esc(label)}</span>${btn("Scorecard", { action: "show-scorecard", kind: "ghost", size: "sm", data: { id: c.id } })}</span></li>`;
+      return `<li>${st(st2)}<span class="t" title="${esc(c.title)}">${esc(c.title)}</span><span class="row-gap"><span class="meta mono" title="${esc(t("avgScore"))}">${avg}/4</span><span class="tag tag--${kind}">${esc(label)}</span>${btn(t("scorecard"), { action: "show-scorecard", kind: "ghost", size: "sm", data: { id: c.id } })}</span></li>`;
     }).join("")}</ul></div>` : ""}
-    ${due.length ? `<div class="note"><span class="label">Reviews due</span><ul class="week__list">${due.map((p) => `<li>${st("due")}${titleLink(p)}</li>`).join("")}</ul></div>` : ""}
-    ${act.length ? `<ul class="rows activity activity--recent" aria-label="Recent practice">${act.slice(0, 8).map((a) => {
-      const [label, kind, s] = OUTCOME[a.outcome] || [a.outcome, "info", "new"];
-      return `<li>${st(s)}<span class="t" title="${esc(a.title)}">${esc(a.title)}</span><span class="row-gap">${a.source === "leetcode" ? '<span class="tag" title="Logged from your LeetCode accepted submissions">LeetCode</span>' : ""}<span class="tag tag--${kind}">${esc(label)}</span><time datetime="${esc(a.date)}">${esc(fmtDate(a.date))}</time></span></li>`;
-    }).join("")}</ul>` : `<div class="empty"><p>Nothing logged yet. Plan a session, then tell the coach how it went.</p></div>`}
+    ${due.length ? `<div class="note"><span class="label">${esc(t("reviewsDueLabel"))}</span><ul class="week__list">${due.map((p) => `<li>${st("due")}${titleLink(p)}</li>`).join("")}</ul></div>` : ""}
+    ${act.length ? `<ul class="rows activity activity--recent" aria-label="${esc(t("recentPractice"))}">${act.slice(0, 8).map((a) => {
+      const [label, kind, s] = outcome(a.outcome);
+      return `<li>${st(s)}<span class="t" title="${esc(a.title)}">${esc(a.title)}</span><span class="row-gap">${a.source === "leetcode" ? `<span class="tag" title="${esc(t("syncedTag"))}">LeetCode</span>` : ""}<span class="tag tag--${kind}">${esc(label)}</span><time datetime="${esc(a.date)}">${esc(fmtDate(a.date))}</time></span></li>`;
+    }).join("")}</ul>` : `<div class="empty"><p>${esc(t("nothingLogged"))}</p></div>`}
   </section>`;
 }
 
 // ---- Render ----------------------------------------------------------------
 
 function renderChrome(d) {
+  document.title = t("brand");
+  $("#sidebar").setAttribute("aria-label", t("sections"));
   $("#sidebar").innerHTML = viewSidebar(d);
   $("#toolbar").innerHTML = viewToolbar(d);
   applyTheme(document.documentElement.dataset.theme || "dark");
   const banner = $("#banner");
   const p = d?.provider;
   let msg = "";
-  if (d?.demo) msg = `Demo · ${d.demo}. Content comes from a real Claude run; buttons use the offline coach, so nothing costs credits.`;
-  else if (p?.name === "fake") msg = "Offline mode: plans and intel come from simple rules, not Claude. Set ANTHROPIC_API_KEY and restart for the real coach.";
-  else if (p && !p.web_search) msg = "Web reports are off on Bedrock; company intel uses the GitHub datasets only.";
+  if (d?.demo) msg = t("bannerDemo", d.demo);
+  else if (p?.name === "fake") msg = t("bannerFake");
+  else if (p && !p.web_search) msg = t("bannerBedrock");
   banner.hidden = !msg;
   banner.textContent = msg;
 }
@@ -813,7 +822,7 @@ function render() {
   renderChrome(d);
   if (ui.loadError && !d) {
     app.className = "work work--single";
-    app.innerHTML = `<section class="col"><div class="panel" role="alert"><div class="empty"><h3>Couldn't load your dashboard</h3><p>${esc(ui.loadError)}</p>${btn("Try again", { action: "reload", kind: "primary" })}</div></div></section>`;
+    app.innerHTML = `<section class="col"><div class="panel" role="alert"><div class="empty"><h3>${esc(t("loadFailed"))}</h3><p>${esc(ui.loadError)}</p>${btn(t("tryAgain"), { action: "reload", kind: "primary" })}</div></div></section>`;
     return;
   }
   if (!d) return;
@@ -830,8 +839,8 @@ function render() {
   document.querySelectorAll("[data-pct]").forEach((el) => el.style.setProperty("--pct", el.dataset.pct));
   document.querySelectorAll("[data-mark]").forEach((el) => el.style.setProperty("--mark", el.dataset.mark));
   document.querySelectorAll("[data-grow]").forEach((el) => el.style.setProperty("--grow", el.dataset.grow));
-  const t = document.querySelector(".transcript");
-  if (t) t.scrollTop = t.scrollHeight; // newest message in view
+  const tr = document.querySelector(".transcript");
+  if (tr) tr.scrollTop = tr.scrollHeight; // newest message in view
 }
 
 // ---- Sidebar highlight ------------------------------------------------------
@@ -959,6 +968,7 @@ document.addEventListener("click", (e) => {
   else if (a === "toggle-topics") { ui.showAllTopics = !ui.showAllTopics; render(); }
   else if (a === "edit-target") { ui.editingTarget = true; ui.setupError = null; render(); $("#company")?.focus(); }
   else if (a === "cancel-edit") { ui.editingTarget = false; render(); }
+  else if (a === "lang") switchLanguage();
   else if (a === "theme") {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     localStorage.setItem("lc-theme", next);
@@ -991,13 +1001,13 @@ document.addEventListener("keydown", (e) => {
 
 // ---- Theme -----------------------------------------------------------------
 
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
   const b = $("#theme-toggle");
   if (!b) return;
-  const dark = t === "dark";
+  const dark = theme === "dark";
   b.innerHTML = icon(dark ? "sun" : "moon");
-  b.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  b.setAttribute("aria-label", dark ? t("toLight") : t("toDark"));
 }
 applyTheme(localStorage.getItem("lc-theme") || "dark");
 

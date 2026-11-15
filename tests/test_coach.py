@@ -287,6 +287,47 @@ class TestSavedKey(unittest.TestCase):
         self.assertNotIn("ANTHROPIC_API_KEY", os.environ)
 
 
+class TestLanguage(Base):
+    def test_language_persists_and_validates(self) -> None:
+        self.assertEqual(self.coach.dashboard()["language"], "en")
+        self.coach.set_language("zh")
+        self.assertEqual(self.store.load().language, "zh")
+        self.assertEqual(self.coach.dashboard()["language"], "zh")
+        with self.assertRaises(ValueError):
+            self.coach.set_language("fr")
+
+    def test_prompts_ask_for_chinese_but_the_interviewer_stays_english(self) -> None:
+        from coach import llm
+        systems: list[str] = []
+        fake = lambda system, user, schema, effort="medium": systems.append(system) or {}  # noqa: E731
+        with mock.patch.object(llm, "provider", return_value="anthropic"), mock.patch.object(llm, "_call_structured", side_effect=fake):
+            llm.generate_plan({"language": "zh"})
+            llm.generate_campaign({"language": "zh"})
+            llm.design_score({"language": "zh"})
+            llm.design_turn({"language": "zh", "transcript": [], "problem": {}})
+            llm.generate_plan({"language": "en"})
+        self.assertTrue(all("Simplified Chinese" in x for x in systems[:3]))
+        self.assertNotIn("Simplified Chinese", systems[3])  # mock interview
+        self.assertIn("Always speak English", systems[3])
+        self.assertNotIn("Simplified Chinese", systems[4])
+
+    def test_progress_messages_follow_language(self) -> None:
+        self.coach.set_language("zh")
+        self.coach.set_target("Anthropic", "2026-12-25")
+        seen: list[str] = []
+        self.coach.refresh_company(progress=seen.append)
+        self.assertTrue(any("GitHub" in m and "题库" in m for m in seen))
+
+    def test_settings_endpoint_and_localized_errors(self) -> None:
+        from coach.web import create_app
+        client = create_app(self.store.path).test_client()
+        h = {"Host": "127.0.0.1:8765"}
+        self.assertEqual(client.post("/api/settings", json={"language": "klingon"}, headers=h).status_code, 400)
+        self.assertEqual(client.post("/api/settings", json={"language": "zh"}, headers=h).get_json()["language"], "zh")
+        err = client.post("/api/plan", json={"minutes": 1}, headers=h).get_json()["error"]
+        self.assertIn("分钟", err)
+
+
 class TestReadiness(Base):
     def test_mastery_raises_readiness(self) -> None:
         self.coach.set_target("Anthropic", "2026-12-25")

@@ -34,6 +34,7 @@ Each cell names the covering test (`spec › test`), or `n/a` with a reason.
 | Sidebar links | navigation › each item | theme-a11y › hover | n/a | Tab walk | n/a | n/a | n/a |
 | Setup form (level, role, posting) | design › setup sends level/role/posting | n/a | n/a | Tab walk | n/a | interactions › setup chain | interactions › server validation |
 | Link / Sync / Unlink LeetCode | leetcode › link request body; sync; unlink | n/a | n/a | Tab walk | leetcode › invalid username | leetcode › link busy | leetcode › failures |
+| Language toggle | i18n › switching: instant, saved, survives reload | theme-a11y › hover (shared .btn) | n/a | Tab walk | n/a | n/a | i18n › failed save |
 | Theme toggle | theme-a11y › toggle persists | theme-a11y › hover | n/a | Tab walk | n/a | n/a | n/a |
 
 ## Cross-cutting
@@ -46,5 +47,6 @@ Each cell names the covering test (`spec › test`), or `n/a` with a reason.
 | Reduced motion | theme-a11y › reduced motion |
 | Small screens | every `@responsive` spec |
 | Visual baselines | visual › dashboard, panels, session, scorecard |
+| Chinese interface (every screen) | i18n › no untranslated text; every key translated; visual; axe |
 | Strict console | fixtures.ts |
 | Coverage | `npm run coverage` |

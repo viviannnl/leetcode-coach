@@ -200,6 +200,19 @@ Rebuild the fixtures from a new live run with
 `python scripts/make_demo.py <recorded-home>`. `LEETCODE_COACH_TODAY=YYYY-MM-DD`
 pins the date for any run.
 
+## Language (English / 中文)
+
+The **中文 / EN** button at the bottom of the sidebar switches the whole
+dashboard between English and Simplified Chinese, and the choice is saved.
+With Chinese selected, Claude also writes plans, coach notes, company intel and
+scorecard feedback in Chinese. **Mock interviews stay in English** on purpose,
+because that's the language of the real interview. Problem titles, company round
+names and technical terms (LRU, BFS, p99) stay in English everywhere. Content
+already generated keeps the language it was written in.
+
+Interface strings live in `coach/static/i18n.js` (both languages side by side);
+server progress and error messages in `coach/i18n.py`.
+
 ## Model providers
 
 | `LEETCODE_COACH_PROVIDER` | Needs | Web research |
@@ -217,7 +230,7 @@ Claude API, requests opt into server-side refusal fallbacks.
 python -m unittest discover -s tests   # backend: offline, fake provider, no network
 
 cd e2e && npm install                  # UI suite (Node 20, uses your installed Chrome)
-npm test                               # 155 browser tests, desktop + mobile, ~40 s
+npm test                               # 171 browser tests, desktop + mobile, ~41 s
 npm run coverage                       # which UI code the tests ran / never ran
 npm run test:update                    # accept intentional visual changes
 npm run report                         # HTML report with traces of failures
@@ -236,6 +249,7 @@ from `e2e/fixtures/midway.json`, so every state is reachable:
 | `flows` | real backend round-trips and the API's request guards |
 | `design` | interview loop, readiness by round, time split, level setup, every mock-interview state |
 | `leetcode` | link / sync / unlink, validation, failures, synced-attempt labels |
+| `i18n` | Chinese interface: no untranslated interface text, every key translated, switching + persistence, localised dates, axe, visual |
 | `gaps` | paths the coverage report found untested |
 
 `e2e/state-matrix.md` maps every region and control state to the test that covers it.

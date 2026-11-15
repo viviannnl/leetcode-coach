@@ -26,6 +26,7 @@ from typing import Any, Callable
 from flask import Flask, abort, jsonify, request, send_from_directory
 
 from . import leetcode, llm
+from .i18n import LANGUAGES, tr
 from .coach import Coach
 from .store import Store
 
@@ -77,6 +78,9 @@ def create_app(state_path: Path | None = None) -> Flask:
     store = Store(state_path)
     jobs = Jobs()
 
+    def lang() -> str:
+        return store.load().language
+
     def coach() -> Coach:
         # A fresh Coach per request so "today" rolls over at midnight.
         return Coach(store=store)
@@ -121,14 +125,14 @@ def create_app(state_path: Path | None = None) -> Flask:
         data = body()
         company = str(data.get("company", "")).strip()
         if not company:
-            return jsonify({"error": "Company is required."}), 400
+            return jsonify({"error": tr(lang(), "err_company")}), 400
         try:
             c = coach()
             if not c.is_initialized():
                 c.initialize("neetcode-150")
             posting = data.get("job_posting")
             if isinstance(posting, str) and len(posting) > 20000:
-                return jsonify({"error": "That job posting is very long — paste just the description."}), 400
+                return jsonify({"error": tr(lang(), "err_posting")}), 400
             c.set_target(
                 company,
                 data.get("interview_date") or None,
@@ -138,9 +142,17 @@ def create_app(state_path: Path | None = None) -> Flask:
                 job_posting=posting if isinstance(posting, str) else None,
             )
         except ValueError as exc:
-            msg = str(exc) if "level" in str(exc) else "Interview date must look like 2026-12-25."
+            msg = tr(lang(), "err_level") if "level" in str(exc) else tr(lang(), "err_date")
             return jsonify({"error": msg}), 400
         return jsonify({"ok": True})
+
+    @app.post("/api/settings")
+    def api_settings():
+        language = str(body().get("language", ""))
+        if language not in LANGUAGES:
+            return jsonify({"error": tr(lang(), "err_language")}), 400
+        coach().set_language(language)
+        return jsonify({"ok": True, "language": language})
 
     @app.post("/api/research")
     def api_research():
@@ -157,10 +169,10 @@ def create_app(state_path: Path | None = None) -> Flask:
         except (TypeError, ValueError):
             minutes = 0
         if not 5 <= minutes <= 600:
-            return jsonify({"error": "Minutes should be between 5 and 600."}), 400
+            return jsonify({"error": tr(lang(), "err_minutes")}), 400
 
         def run(progress):
-            progress(f"Planning your best {minutes} minutes…")
+            progress(tr(lang(), "plan", minutes=minutes))
             coach().plan_today(minutes)
             return True
 
@@ -170,12 +182,12 @@ def create_app(state_path: Path | None = None) -> Flask:
     def api_feedback():
         text = str(body().get("text", "")).strip()
         if not text:
-            return jsonify({"error": "Tell the coach how it went first."}), 400
+            return jsonify({"error": tr(lang(), "err_recap_empty")}), 400
         if len(text) > 5000:
-            return jsonify({"error": "That recap is very long — trim it under 5,000 characters."}), 400
+            return jsonify({"error": tr(lang(), "err_recap_long")}), 400
 
         def run(progress):
-            progress("Reading your recap and updating your history…")
+            progress(tr(lang(), "recap"))
             return coach().record_feedback(text)
 
         return jsonify({"job": jobs.start("feedback", run)})
@@ -189,7 +201,7 @@ def create_app(state_path: Path | None = None) -> Flask:
     def api_design_start():
         title = str(body().get("title", "")).strip()
         if not title:
-            return jsonify({"error": "Pick a design problem."}), 400
+            return jsonify({"error": tr(lang(), "err_design_pick")}), 400
         return jsonify({"job": jobs.start("design", lambda p: _session_payload(coach().start_design_session(title, p)))})
 
     @app.post("/api/design/reply")
@@ -197,9 +209,9 @@ def create_app(state_path: Path | None = None) -> Flask:
         data = body()
         sid, text = str(data.get("session", "")), str(data.get("text", "")).strip()
         if not text:
-            return jsonify({"error": "Write your answer first."}), 400
+            return jsonify({"error": tr(lang(), "err_answer_empty")}), 400
         if len(text) > 8000:
-            return jsonify({"error": "That answer is very long — split it into a few messages."}), 400
+            return jsonify({"error": tr(lang(), "err_answer_long")}), 400
         return jsonify({"job": jobs.start("design", lambda p: _session_payload(coach().reply_design_session(sid, text, p)))})
 
     @app.post("/api/design/finish")
@@ -221,7 +233,7 @@ def create_app(state_path: Path | None = None) -> Flask:
     def api_leetcode_link():
         username = str(body().get("username", "")).strip().lstrip("@")
         if not leetcode.valid_username(username):
-            return jsonify({"error": "That doesn't look like a LeetCode username (letters, digits, - and _)."}), 400
+            return jsonify({"error": tr(lang(), "err_username")}), 400
         return jsonify({"job": jobs.start("leetcode", lambda p: coach().link_leetcode(username, p))})
 
     @app.post("/api/leetcode/sync")
@@ -237,7 +249,7 @@ def create_app(state_path: Path | None = None) -> Flask:
     def api_job(job_id: str):
         job = jobs.get(job_id)
         if job is None:
-            return jsonify({"error": "Unknown job."}), 404
+            return jsonify({"error": tr(lang(), "err_job")}), 404
         return jsonify(job)
 
     return app

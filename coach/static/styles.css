@@ -538,3 +538,10 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .lc__stats b { font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--text); }
 .lc .tag .mono { color: var(--text); }
 .lc__user { font-size: var(--text-xs); }
+.lang-toggle { font-family: var(--font-sans); min-width: 2.75rem; }
+/* CJK: uppercase tracking does nothing for Chinese and looks gappy; keep labels tight. */
+:lang(zh-CN) .label { letter-spacing: 0.02em; }
+/* Chinese dates ("11月28日–12月4日") are wider than "Nov 28–Dec 4". */
+:lang(zh-CN) .week__head { grid-template-columns: 2.75rem 7rem minmax(0, 1fr) 9rem 2.5rem 1rem; }
+@media (max-width: 52rem) { :lang(zh-CN) .week__head { grid-template-columns: 3rem minmax(0, 1fr) 2.5rem 1rem; } }
+.week__list .kind, .row__right .kind { white-space: nowrap; flex: none; }

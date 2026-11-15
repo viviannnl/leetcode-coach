@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from . import companies, leetcode, llm, review
+from .i18n import LANGUAGES, tr
 from .roadmap import PRACTICAL_TOPIC, SYSTEM_DESIGN, TRACKS, Roadmap, load_roadmap, norm_title
 from .store import DEFAULT_LEVEL, LEVELS, Attempt, State, Store, Target
 
@@ -103,6 +104,23 @@ class Coach:
             return base
         return base.with_extras(profile.get("problems", []))
 
+    # ---- settings -------------------------------------------------------- #
+
+    @property
+    def lang(self) -> str:
+        return self.store.load().language
+
+    def set_language(self, language: str) -> str:
+        if language not in LANGUAGES:
+            raise ValueError(tr(self.lang, "err_language"))
+        state = self.store.load()
+        state.language = language
+        self.store.save(state)
+        return language
+
+    def _msg(self, key: str, **kw: object) -> str:
+        return tr(self.lang, key, **kw)
+
     # ---- target --------------------------------------------------------- #
 
     def set_target(
@@ -170,13 +188,13 @@ class Coach:
         company = target.company
         base = load_roadmap(state.roadmap_id or "neetcode-150")
 
-        progress("Fetching LeetCode company-tag datasets from GitHub…")
+        progress(self._msg("datasets"))
         dataset_rows, sources = companies.fetch_datasets(company)
 
         web: dict[str, Any] | None = None
         web_status = "skipped"
         if llm.supports_web_search():
-            progress("Searching the web for recent interview reports…")
+            progress(self._msg("web"))
             try:
                 web = llm.research_company(
                     {
@@ -198,8 +216,9 @@ class Coach:
                 f"research {web_status}."
             )
 
-        progress("Merging the evidence into a prep profile…")
+        progress(self._msg("merge"))
         context = {
+            "language": state.language,
             "company": company,
             "level": target.level_label,
             "role": target.role,
@@ -293,8 +312,9 @@ class Coach:
             raise RuntimeError("The interview date must be in the future.")
         profile = self._profile(state)
 
-        progress("Planning every week until the interview…")
+        progress(self._msg("campaign"))
         context = {
+            "language": state.language,
             "today": self.today.isoformat(),
             "interview_date": state.target.interview_date,
             "days_left": days,
@@ -390,7 +410,7 @@ class Coach:
         link = state.leetcode
         if not link:
             raise RuntimeError("No LeetCode account linked.")
-        progress(f"Reading LeetCode profile @{link['username']}…")
+        progress(self._msg("lc_read", username=link["username"]))
         profile = leetcode.fetch_profile(link["username"])
 
         added: list[str] = []
@@ -490,6 +510,7 @@ class Coach:
         ]
 
         context: dict[str, Any] = {
+            "language": state.language,
             "today": self.today.isoformat(),
             "available_minutes": minutes,
             "roadmap": {
@@ -584,7 +605,7 @@ class Coach:
             "todays_plan": [{"title": i.title, "kind": i.kind} for i in plan.items] if plan else [],
             "roadmap_titles": [p.title for p in roadmap.problems],
         }
-        raw = llm.parse_feedback({"reference": reference, "feedback": feedback})
+        raw = llm.parse_feedback({"reference": reference, "feedback": feedback, "language": state.language})
 
         applied: list[dict[str, Any]] = []
         unmatched = list(raw.get("unmatched", []))
@@ -672,6 +693,7 @@ class Coach:
             "initialized": initialized,
             "provider": {"name": llm.provider(), "web_search": llm.supports_web_search()},
             "demo": os.environ.get("LEETCODE_COACH_DEMO") or None,
+            "language": state.language,
             "daily_minutes": state.daily_minutes,
             "target": None,
             "levels": [{"id": k, "label": v} for k, v in LEVELS.items()],
@@ -902,7 +924,7 @@ class Coach:
             "hints": 0,
             "transcript": [],
         }
-        progress("The interviewer is reading the prompt…")
+        progress(self._msg("design_start"))
         turn = llm.design_turn(self._session_context(state, session))
         session["transcript"].append({"role": "interviewer", "text": turn["reply"], "phase": turn["phase"]})
         self._save_session(session)
@@ -914,7 +936,7 @@ class Coach:
         if session["status"] != "active":
             raise RuntimeError("This session is already finished.")
         session["transcript"].append({"role": "candidate", "text": text})
-        progress("The interviewer is thinking…")
+        progress(self._msg("design_turn"))
         turn = llm.design_turn(self._session_context(state, session))
         session["transcript"].append({"role": "interviewer", "text": turn["reply"], "phase": turn["phase"]})
         if turn.get("hint_given"):
@@ -934,9 +956,10 @@ class Coach:
             raise RuntimeError("This session is already finished.")
         if not any(m["role"] == "candidate" for m in session["transcript"]):
             raise RuntimeError("Write at least one answer before finishing.")
-        progress("Grading your design against the rubric…")
+        progress(self._msg("design_grade"))
         ctx = self._session_context(state, session)
         ctx["hints_given"] = session.get("hints", 0)
+        ctx["language"] = state.language  # feedback language; the interview itself stays English
         card = llm.design_score(ctx)
 
         started = datetime.fromisoformat(session["started"])
