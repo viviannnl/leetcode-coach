@@ -59,11 +59,16 @@ structured outputs; the record it maintains is clean JSON so future features
 pip install -e .
 ```
 
-Set your Anthropic API key (or use the `ant` CLI login):
+Save your Anthropic API key once, readable only by you:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+mkdir -p ~/.leetcode-coach
+(umask 077; printf '%s' 'sk-ant-...' > ~/.leetcode-coach/anthropic.key)
 ```
+
+Every command picks it up automatically. An exported `ANTHROPIC_API_KEY` (or an
+`ant auth login` profile) still takes precedence, and a key file readable by
+other users is refused with a `chmod 600` hint.
 
 ## Use
 

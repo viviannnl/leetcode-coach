@@ -249,6 +249,44 @@ class TestLeetCodeSync(Base):
         self.assertEqual(ctx["leetcode_profile"]["solved"]["All"], 120)
 
 
+class TestSavedKey(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.env = mock.patch.dict(os.environ, {}, clear=False)
+        self.env.start()
+        self.addCleanup(self.env.stop)
+        os.environ.pop("ANTHROPIC_API_KEY", None)
+        os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
+        from coach import llm
+        self.llm = llm
+        self.path = Path(self.tmp.name) / "anthropic.key"
+
+    def test_private_key_file_is_loaded(self) -> None:
+        self.path.write_text("sk-test-123\n")
+        self.path.chmod(0o600)
+        self.assertIsNone(self.llm.load_saved_key(self.tmp.name))
+        self.assertEqual(os.environ["ANTHROPIC_API_KEY"], "sk-test-123")
+
+    def test_exported_key_wins(self) -> None:
+        self.path.write_text("sk-from-file")
+        self.path.chmod(0o600)
+        os.environ["ANTHROPIC_API_KEY"] = "sk-exported"
+        self.llm.load_saved_key(self.tmp.name)
+        self.assertEqual(os.environ["ANTHROPIC_API_KEY"], "sk-exported")
+
+    def test_readable_key_file_is_refused(self) -> None:
+        self.path.write_text("sk-leaky")
+        self.path.chmod(0o644)
+        warning = self.llm.load_saved_key(self.tmp.name)
+        self.assertIn("chmod 600", warning)
+        self.assertNotIn("ANTHROPIC_API_KEY", os.environ)
+
+    def test_missing_file_is_fine(self) -> None:
+        self.assertIsNone(self.llm.load_saved_key(self.tmp.name))
+        self.assertNotIn("ANTHROPIC_API_KEY", os.environ)
+
+
 class TestReadiness(Base):
     def test_mastery_raises_readiness(self) -> None:
         self.coach.set_target("Anthropic", "2026-12-25")

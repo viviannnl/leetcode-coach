@@ -44,6 +44,32 @@ class LLMError(RuntimeError):
 # --------------------------------------------------------------------------- #
 
 
+KEY_FILE = "anthropic.key"
+
+
+def load_saved_key(home: "os.PathLike[str] | str") -> str | None:
+    """Use ``<home>/anthropic.key`` when ANTHROPIC_API_KEY isn't already set.
+
+    An explicitly exported key always wins. The file must be private to the
+    user (no group/other permissions), since it's a credential; a readable file
+    is refused with a fix-it message rather than silently used. Returns a
+    warning to show, or None.
+    """
+    if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
+        return None
+    from pathlib import Path
+
+    path = Path(home) / KEY_FILE
+    if not path.is_file():
+        return None
+    if path.stat().st_mode & 0o077:
+        return f"Ignoring {path}: it's readable by other users. Run: chmod 600 {path}"
+    key = path.read_text().strip()
+    if key:
+        os.environ["ANTHROPIC_API_KEY"] = key
+    return None
+
+
 def provider() -> str:
     explicit = os.environ.get("LEETCODE_COACH_PROVIDER", "").strip().lower()
     if explicit:

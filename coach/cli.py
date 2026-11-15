@@ -517,6 +517,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    # Pick up a saved API key from the coach home so nobody has to export it.
+    home = (args.state or default_state_path()).parent
+    warning = llm.load_saved_key(home)
+    if warning:
+        print(yellow(warning))
     if not getattr(args, "command", None):
         parser.print_help()
         return 0
